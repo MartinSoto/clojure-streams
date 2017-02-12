@@ -1,0 +1,23 @@
+version: '2'
+
+services:
+
+  kafka:
+    image: spotify/kafka
+    ports:
+      - "9092:9092"
+
+  # Test command-line producer and consumer:
+  #
+  # docker-compose run --rm kafka bash -c "/opt/kafka_2.11-0.10.1.0/bin/kafka-console-producer.sh --broker-list kafka:9092 --topic test"
+  #
+  # docker-compose run --rm kafka bash -c "/opt/kafka_2.11-0.10.1.0/bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic test"
+
+  clojure:
+    build: docker/clojure
+    volumes:
+      - ${HOME}:${HOME}
+    links:
+      - kafka
+    working_dir: /workspace
+    command: sleep 1

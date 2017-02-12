@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+COMPOSE_SERVICE=clojure
+PROGRAM=lein
+REPL_PORT=7788
+
+cnt_name=$PROGRAM.$$
+
+start_container() {
+    docker-compose run \
+           --name $cnt_name \
+           --rm \
+           -e USER_UID=$(id -u) \
+           -e USER_GID=$(id -g) \
+           -e USER_DIR=$HOME \
+           -e USER_NAME=$(whoami) \
+           -w $(pwd) \
+           -p $REPL_PORT:$REPL_PORT \
+           $COMPOSE_SERVICE \
+           $PROGRAM "$@"
+}
+
+kill_container() {
+    echo $$ DIED! >> /tmp/lein.txt 
+    docker kill $cnt_name 2> /dev/null
+}
+
+trap kill_container EXIT
+
+start_container "$@"
