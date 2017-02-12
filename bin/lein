@@ -7,6 +7,11 @@ REPL_PORT=7788
 cnt_name=$PROGRAM.$$
 
 start_container() {
+    task_options=""
+    if echo "$@" | grep -e '\<repl\>'; then
+        task_options="$task_options -p $REPL_PORT:$REPL_PORT"
+    fi
+
     docker-compose run \
            --name $cnt_name \
            --rm \
@@ -15,7 +20,7 @@ start_container() {
            -e USER_DIR=$HOME \
            -e USER_NAME=$(whoami) \
            -w $(pwd) \
-           -p $REPL_PORT:$REPL_PORT \
+           $task_options \
            $COMPOSE_SERVICE \
            $PROGRAM "$@"
 }
