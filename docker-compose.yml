@@ -21,3 +21,9 @@ services:
       - kafka
     working_dir: /workspace
     command: sleep 1
+
+  kafkacat:
+    build: docker/kafkacat
+    links:
+      - kafka
+    command: sleep 1
