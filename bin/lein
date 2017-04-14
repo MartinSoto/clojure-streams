@@ -7,26 +7,28 @@ REPL_PORT=7788
 cnt_name=$PROGRAM.$$
 
 start_container() {
+    compose_project=${PROJECT_DIR:-.}/docker-compose.yml
     task_options=""
     if echo "$@" | grep -e '\<repl\>'; then
         task_options="$task_options -p $REPL_PORT:$REPL_PORT"
     fi
 
-    docker-compose run \
-           --name $cnt_name \
-           --rm \
-           -e USER_UID=$(id -u) \
-           -e USER_GID=$(id -g) \
-           -e USER_DIR=$HOME \
-           -e USER_NAME=$(whoami) \
-           -w $(pwd) \
-           $task_options \
-           $COMPOSE_SERVICE \
-           $PROGRAM "$@"
+    docker-compose \
+        --file "$compose_project" \
+        run \
+        --name $cnt_name \
+        --rm \
+        -e USER_UID=$(id -u) \
+        -e USER_GID=$(id -g) \
+        -e USER_DIR=$HOME \
+        -e USER_NAME=$(whoami) \
+        -w $(pwd) \
+        $task_options \
+        $COMPOSE_SERVICE \
+        $PROGRAM "$@"
 }
 
 kill_container() {
-    echo $$ DIED! >> /tmp/lein.txt 
     docker kill $cnt_name 2> /dev/null
 }
 

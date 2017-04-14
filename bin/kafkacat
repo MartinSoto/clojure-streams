@@ -5,15 +5,19 @@ COMPOSE_SERVICE=kafkacat
 cnt_name=kafkacat.$$
 
 start_container() {
-    docker-compose run \
-           --name $cnt_name \
-           --rm \
-           -e USER_UID=$(id -u) \
-           -e USER_GID=$(id -g) \
-           -e USER_DIR=$HOME \
-           -e USER_NAME=$(whoami) \
-           $COMPOSE_SERVICE \
-           "$@"
+    compose_project=${PROJECT_DIR:-.}/docker-compose.yml
+
+    docker-compose \
+        --file "$compose_project" \
+        run \
+        --name $cnt_name \
+        --rm \
+        -e USER_UID=$(id -u) \
+        -e USER_GID=$(id -g) \
+        -e USER_DIR=$HOME \
+        -e USER_NAME=$(whoami) \
+        $COMPOSE_SERVICE \
+        "$@"
 }
 
 kill_container() {
