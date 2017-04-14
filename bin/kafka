@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+
+COMPOSE_SERVICE=kafka
+KAFKA_BIN_PATH=/opt/kafka_*/bin
+
+cnt_name=$COMPOSE_SERVICE.$$
+
+
+run_container() {
+    compose_project=${PROJECT_DIR:-.}/docker-compose.yml
+
+    docker-compose \
+        --file "$compose_project" \
+        run \
+        --name $cnt_name \
+        --rm \
+        -e USER_UID=$(id -u) \
+        -e USER_GID=$(id -g) \
+        -e USER_DIR=$HOME \
+        -e USER_NAME=$(whoami) \
+        -w $(pwd) \
+        $COMPOSE_SERVICE \
+        "$@"
+}
+
+kill_container() {
+    docker kill $cnt_name 2> /dev/null
+}
+
+trap kill_container EXIT
+
+
+display_help() {
+    echo "Usage: $script_name <cmd> <args>"
+    echo
+    echo "Commands:"
+    echo "  topics		Work with topics"
+}
+
+run_kafka_command() {
+    prog_name=kafka-$1.sh
+    shift
+    prog_path=$KAFKA_BIN_PATH/$prog_name
+
+    run_container sh -c "exec $prog_path $*"
+}
+
+run_zookeeper_command() {
+    cmd=$1
+    shift
+    run_kafka_command $cmd --zookeeper $COMPOSE_SERVICE:2181 "$@"
+}
+
+
+script_name=$(basename $0)
+cmd=$1
+case $cmd in
+    help)
+        display_help 1>&2
+        ;;
+    topics)
+        run_zookeeper_command "$@"
+        ;;
+    *)
+        display_help 1>&2
+esac
