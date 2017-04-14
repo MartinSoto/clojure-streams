@@ -34,6 +34,7 @@ display_help() {
     echo "Usage: $script_name <cmd> <args>"
     echo
     echo "Commands:"
+    echo "  consumer		Read messages from a topic"
     echo "  topics		Work with topics"
 }
 
@@ -51,15 +52,25 @@ run_zookeeper_command() {
     run_kafka_command $cmd --zookeeper $COMPOSE_SERVICE:2181 "$@"
 }
 
+run_bootstrap_command() {
+    cmd=$1
+    shift
+    run_kafka_command $cmd --bootstrap-server $COMPOSE_SERVICE:9092 "$@"
+}
+
 
 script_name=$(basename $0)
 cmd=$1
+shift
 case $cmd in
     help)
         display_help 1>&2
         ;;
+    consumer)
+        run_bootstrap_command console-consumer "$@"
+        ;;
     topics)
-        run_zookeeper_command "$@"
+        run_zookeeper_command topics "$@"
         ;;
     *)
         display_help 1>&2
