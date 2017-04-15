@@ -42,16 +42,16 @@
 
 (def count-words-props
   (doto (java.util.Properties.)
-    (.put StreamsConfig/APPLICATION_ID_CONFIG, "streams-wordcount")
-    (.put StreamsConfig/BOOTSTRAP_SERVERS_CONFIG, "kafka:9092")
-    (.put StreamsConfig/KEY_SERDE_CLASS_CONFIG, (-> (Serdes/String) .getClass .getName))
-    (.put StreamsConfig/VALUE_SERDE_CLASS_CONFIG, (-> (Serdes/String) .getClass .getName))
+    (.put StreamsConfig/APPLICATION_ID_CONFIG "streams-wordcount")
+    (.put StreamsConfig/BOOTSTRAP_SERVERS_CONFIG "kafka:9092")
+    (.put StreamsConfig/KEY_SERDE_CLASS_CONFIG (-> (Serdes/String) .getClass .getName))
+    (.put StreamsConfig/VALUE_SERDE_CLASS_CONFIG (-> (Serdes/String) .getClass .getName))
 
     ; setting offset reset to earliest so that we can re-run the demo
     ; code with the same pre-loaded data
     ; Note: To re-run the demo, you need to use the offset reset tool:
     ; https://cwiki.apache.org/confluence/display/KAFKA/Kafka+Streams+Application+Reset+Tool
-    (.put ConsumerConfig/AUTO_OFFSET_RESET_CONFIG, "earliest")))
+    (.put ConsumerConfig/AUTO_OFFSET_RESET_CONFIG "earliest")))
 
 (defn count-words
   [& args]
@@ -63,14 +63,11 @@
                       (apply [this value]
                         (-> value
                             str/lower-case
-                            (str/split #" +"))
-                        ;return Arrays.asList(value.toLowerCase(Locale.getDefault()).split(" "));
-                        )))
+                            (str/split #" +")))))
                    (.map
                     (reify KeyValueMapper
                       (apply [this key value]
-                        (KeyValue. value value)
-                    )))
+                        (KeyValue. value value))))
                    .groupByKey
                    (.count "Counts"))
         xxx (.to counts (Serdes/String) (Serdes/Long) "streams-wordcount-output")
@@ -88,8 +85,7 @@
                          (.foreach
                           (reify ForeachAction
                             (apply [this key value]
-                              (println key value)
-                              ))))
+                              (println key value)))))
         streams (KafkaStreams. builder count-words-props)]
 
     (.start streams)
