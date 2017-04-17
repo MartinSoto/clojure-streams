@@ -53,29 +53,36 @@
     ; https://cwiki.apache.org/confluence/display/KAFKA/Kafka+Streams+Application+Reset+Tool
     (.put ConsumerConfig/AUTO_OFFSET_RESET_CONFIG "earliest")))
 
-(defn count-words
-  [& args]
+(defn run-topology
+  [build-topology-fn props]
   (let [builder (KStreamBuilder.)
-        source (.stream builder (into-array String ["streams-file-input"]))
-        counts (-> source
-                   (.flatMapValues
-                    (reify ValueMapper
-                      (apply [this value]
-                        (-> value
-                            str/lower-case
-                            (str/split #" +")))))
-                   (.map
-                    (reify KeyValueMapper
-                      (apply [this key value]
-                        (KeyValue. value value))))
-                   .groupByKey
-                   (.count "Counts"))
-        xxx (.to counts (Serdes/String) (Serdes/Long) "streams-wordcount-output")
+        _ (build-topology-fn builder)
         streams (KafkaStreams. builder count-words-props)]
-
     (.start streams)
     (Thread/sleep 5000)
     (.close streams)))
+
+(defn build-count-words
+  [builder]
+  (-> builder
+    (.stream (into-array String ["streams-file-input"]))
+    (.flatMapValues
+     (reify ValueMapper
+       (apply [this value]
+         (-> value
+             str/lower-case
+             (str/split #" +")))))
+    (.map
+     (reify KeyValueMapper
+       (apply [this key value]
+         (KeyValue. value value))))
+    .groupByKey
+    (.count "Counts")
+    (.to (Serdes/String) (Serdes/Long) "streams-wordcount-output")))
+
+(defn count-words
+  [& args]
+  (run-topology build-count-words count-words-props))
 
 (defn print-word-counts[& args]
   (let [builder (KStreamBuilder.)
