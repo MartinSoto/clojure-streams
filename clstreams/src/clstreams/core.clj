@@ -41,17 +41,12 @@
       .close)))
 
 (def count-words-props
-  (doto (java.util.Properties.)
-    (.put StreamsConfig/APPLICATION_ID_CONFIG "streams-wordcount")
-    (.put StreamsConfig/BOOTSTRAP_SERVERS_CONFIG "kafka:9092")
-    (.put StreamsConfig/KEY_SERDE_CLASS_CONFIG (-> (Serdes/String) .getClass .getName))
-    (.put StreamsConfig/VALUE_SERDE_CLASS_CONFIG (-> (Serdes/String) .getClass .getName))
-
-    ; setting offset reset to earliest so that we can re-run the demo
-    ; code with the same pre-loaded data
-    ; Note: To re-run the demo, you need to use the offset reset tool:
-    ; https://cwiki.apache.org/confluence/display/KAFKA/Kafka+Streams+Application+Reset+Tool
-    (.put ConsumerConfig/AUTO_OFFSET_RESET_CONFIG "earliest")))
+  (StreamsConfig.
+   {StreamsConfig/APPLICATION_ID_CONFIG "streams-wordcount"
+    StreamsConfig/BOOTSTRAP_SERVERS_CONFIG "kafka:9092"
+    StreamsConfig/KEY_SERDE_CLASS_CONFIG (-> (Serdes/String) .getClass .getName)
+    StreamsConfig/VALUE_SERDE_CLASS_CONFIG (-> (Serdes/String) .getClass .getName)
+    ConsumerConfig/AUTO_OFFSET_RESET_CONFIG "earliest"}))
 
 (defn run-topology
   [build-topology-fn props]
