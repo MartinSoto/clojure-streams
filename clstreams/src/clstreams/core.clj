@@ -57,6 +57,12 @@
     (Thread/sleep 5000)
     (.close streams)))
 
+(defn build-copy
+  [builder]
+  (-> builder
+    (.stream (into-array String ["streams-file-input"]))
+    (.to (Serdes/String) (Serdes/String) "streams-wordcount-output")))
+
 (defn build-count-words
   [builder]
   (-> builder

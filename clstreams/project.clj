@@ -7,8 +7,10 @@
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/tools.namespace "0.3.0-alpha3"]
 
-                 [org.apache.kafka/kafka-clients "0.10.1.0"]
-                 [org.apache.kafka/kafka-streams "0.10.1.0"]]
+                 [org.apache.kafka/kafka-clients "0.10.2.1-rc2"]
+                 [org.apache.kafka/kafka-clients "0.10.2.1-rc2" :classifier "test"]
+                 [org.apache.kafka/kafka-streams "0.10.2.1-rc2"]
+                 [org.apache.kafka/kafka-streams "0.10.2.1-rc2" :classifier "test"]]
 
   :main ^:skip-aot clstreams.core
   :target-path "target/%s"
