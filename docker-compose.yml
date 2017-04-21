@@ -33,3 +33,10 @@ services:
     links:
       - kafka
     command: sleep 1
+
+  shell:
+    build: docker/shell
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${HOME}:${HOME}
+    command: sleep 1
