@@ -16,10 +16,10 @@ services:
   clojure:
     build: docker/clojure
     volumes:
-      - ${HOME}:${HOME}
+      - ${PROJECT_DIR}:${PROJECT_DIR}
+      - maven-repo:/var/lib/maven
     links:
       - kafka
-    working_dir: /workspace
     command: sleep 1
 
   gradle:
@@ -42,3 +42,7 @@ services:
     environment:
       PROJECT_DIR: ${PROJECT_DIR}
     command: sleep 1
+
+volumes:
+
+  maven-repo:
