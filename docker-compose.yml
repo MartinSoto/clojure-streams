@@ -25,7 +25,9 @@ services:
   gradle:
     build: docker/gradle
     volumes:
-      - ${HOME}:${HOME}
+      - ${PROJECT_DIR}:${PROJECT_DIR}
+      - maven-repo:/var/lib/maven
+      - gradle-dir:/var/lib/gradle
     command: sleep 1
 
   kafkacat:
@@ -46,3 +48,5 @@ services:
 volumes:
 
   maven-repo:
+
+  gradle-dir:
