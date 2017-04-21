@@ -33,7 +33,7 @@ RUN apt-get install -y bash-completion
 RUN curl -L "https://raw.githubusercontent.com/docker/compose/$(docker-compose version --short)/contrib/completion/bash/docker-compose" -o /etc/bash_completion.d/docker-compose
 RUN curl -L "https://raw.githubusercontent.com/moby/moby/$(docker --version | egrep -o '[0-9]+\.[0-9]+').x/contrib/completion/bash/docker" -o /etc/bash_completion.d/docker
 
-COPY project_script_path.sh /etc/profile.d
+COPY profile.d.sh /etc/profile.d/clstreams_shell.sh
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
