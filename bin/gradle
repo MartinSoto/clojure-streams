@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+COMPOSE_SERVICE=gradle
+PROGRAM=gradle
+
+cnt_name=$PROGRAM.$$
+
+start_container() {
+    compose_project=${PROJECT_DIR:-.}/docker-compose.yml
+
+    docker-compose \
+        --file "$compose_project" \
+        run \
+        --name $cnt_name \
+        --rm \
+        -e USER_UID=$(id -u) \
+        -e USER_GID=$(id -g) \
+        -e USER_DIR=$HOME \
+        -e USER_NAME=$(whoami) \
+        -w $(pwd) \
+        $COMPOSE_SERVICE \
+        $PROGRAM "$@"
+}
+
+kill_container() {
+    docker kill $cnt_name 2> /dev/null
+}
+
+trap kill_container EXIT
+
+start_container "$@"

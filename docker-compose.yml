@@ -22,6 +22,12 @@ services:
     working_dir: /workspace
     command: sleep 1
 
+  gradle:
+    build: docker/gradle
+    volumes:
+      - ${HOME}:${HOME}
+    command: sleep 1
+
   kafkacat:
     build: docker/kafkacat
     links:
