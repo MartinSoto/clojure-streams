@@ -29,6 +29,10 @@ ENV COMPOSE_VERSION 1.12.0
 RUN curl -L "https://github.com/docker/compose/releases/download/$COMPOSE_VERSION/docker-compose-$(uname -s)-$(uname -m)" > /usr/local/bin/docker-compose \
     && chmod +x /usr/local/bin/docker-compose
 
+RUN apt-get install -y bash-completion
+RUN curl -L "https://raw.githubusercontent.com/docker/compose/$(docker-compose version --short)/contrib/completion/bash/docker-compose" -o /etc/bash_completion.d/docker-compose
+RUN curl -L "https://raw.githubusercontent.com/moby/moby/$(docker --version | egrep -o '[0-9]+\.[0-9]+').x/contrib/completion/bash/docker" -o /etc/bash_completion.d/docker
+
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

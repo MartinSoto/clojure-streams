@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 COMPOSE_SERVICE=shell
-PROGRAM=bash
+PROGRAM="bash --login"
 
 cnt_name=$COMPOSE_SERVICE.$$
 
