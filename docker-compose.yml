@@ -38,5 +38,7 @@ services:
     build: docker/shell
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ${HOME}:${HOME}
+      - ${PROJECT_DIR}:${PROJECT_DIR}
+    environment:
+      PROJECT_DIR: ${PROJECT_DIR}
     command: sleep 1

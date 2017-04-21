@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+PROJECT_DIR=$(cd $(dirname $0)/..; pwd)
+
 COMPOSE_SERVICE=shell
 PROGRAM="bash --login"
 
@@ -15,7 +17,6 @@ start_container() {
         --rm \
         -e USER_UID=$(id -u) \
         -e USER_GID=$(id -g) \
-        -e USER_DIR=$HOME \
         -e USER_NAME=$(whoami) \
         -w $(pwd) \
         $COMPOSE_SERVICE \
