@@ -3,6 +3,8 @@
 set -o pipefail
 
 setup_user() {
+    home_base=/container_home
+
     useradd_params=''
     if [ ! -z "$USER_UID" ]; then
         useradd_params="$useradd_params --uid $USER_UID"
@@ -12,13 +14,13 @@ setup_user() {
     fi
     if [ ! -z "$USER_DIR" ]; then
         mkdir -p $USER_DIR
-        useradd_params="$useradd_params --home-dir $USER_DIR"
     fi
     if [ -z "$USER_NAME" ]; then
         USER_NAME=build
     fi
-    useradd_params="$useradd_params $USER_NAME"
+    useradd_params="$useradd_params -m --home-dir $home_base/$USER_NAME $USER_NAME"
 
+    mkdir -p $home_base
     useradd $useradd_params
 
     docker_group=$(stat -c '%G' /var/run/docker.sock)
