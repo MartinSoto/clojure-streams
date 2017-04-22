@@ -69,7 +69,7 @@
   (-> builder
       (.stream (into-array String ["streams-file-input"]))
       (ks/flatMapValues #(-> % str/lower-case (str/split #" +")))
-      (ks/map #(KeyValue. %2 %2))
+      (ks/ksmap #(KeyValue. %2 %2))
       ks/groupByKey
       (.count "Counts")
       (.to (Serdes/String) (Serdes/Long) "streams-wordcount-output")))

@@ -21,7 +21,7 @@
 (defprotocol KStream
   (groupByKey [this])
   (flatMapValues [this processor])
-  (map [this processor]))
+  (ksmap [this processor]))
 
 (extend-type org.apache.kafka.streams.kstream.KStream
   KStream
@@ -30,6 +30,6 @@
   (flatMapValues [this processor]
     (.flatMapValues this
                     (java-function org.apache.kafka.streams.kstream.ValueMapper processor)))
-  (map [this processor]
+  (ksmap [this processor]
     (.map this
           (java-function org.apache.kafka.streams.kstream.KeyValueMapper processor))))
