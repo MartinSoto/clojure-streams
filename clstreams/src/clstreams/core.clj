@@ -5,7 +5,8 @@
            [org.apache.kafka.common.serialization Serdes]
            [org.apache.kafka.streams KafkaStreams KeyValue StreamsConfig]
            [org.apache.kafka.streams.kstream
-            KStreamBuilder KStream KTable KeyValueMapper ValueMapper ForeachAction]))
+            KStreamBuilder KStream KTable KeyValueMapper ValueMapper ForeachAction])
+  (:require [clstreams.kstreams :as ks]))
 
 (require '[clojure.string :as str])
 
@@ -66,20 +67,12 @@
 (defn build-count-words
   [builder]
   (-> builder
-    (.stream (into-array String ["streams-file-input"]))
-    (.flatMapValues
-     (reify ValueMapper
-       (apply [this value]
-         (-> value
-             str/lower-case
-             (str/split #" +")))))
-    (.map
-     (reify KeyValueMapper
-       (apply [this key value]
-         (KeyValue. value value))))
-    .groupByKey
-    (.count "Counts")
-    (.to (Serdes/String) (Serdes/Long) "streams-wordcount-output")))
+      (.stream (into-array String ["streams-file-input"]))
+      (ks/flatMapValues #(-> % str/lower-case (str/split #" +")))
+      (ks/map #(KeyValue. %2 %2))
+      ks/groupByKey
+      (.count "Counts")
+      (.to (Serdes/String) (Serdes/Long) "streams-wordcount-output")))
 
 (defn count-words
   [& args]
