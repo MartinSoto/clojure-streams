@@ -1,4 +1,4 @@
-(ns clstreams.kstreams
+(ns clstreams.kstreams.impl
   (:import [org.apache.kafka.streams.kstream])
   (:require [clojure.reflect]))
 
@@ -18,18 +18,17 @@
   `(defprotocol ~name
      ~@(map method-def members))))
 
-(defprotocol KStream
-  (groupByKey [this])
-  (flatMapValues [this processor])
-  (ksmap [this processor]))
+(defn ks-groupByKey
+  [kstream]
+  (.groupByKey kstream))
 
-(extend-type org.apache.kafka.streams.kstream.KStream
-  KStream
-  (groupByKey [this]
-    (.groupByKey this))
-  (flatMapValues [this processor]
-    (.flatMapValues this
-                    (java-function org.apache.kafka.streams.kstream.ValueMapper processor)))
-  (ksmap [this processor]
-    (.map this
-          (java-function org.apache.kafka.streams.kstream.KeyValueMapper processor))))
+(defn ks-flatMapValues
+  [kstream processor]
+  (.flatMapValues kstream
+                  (java-function org.apache.kafka.streams.kstream.ValueMapper processor)))
+
+(defn ks-map
+  [kstream processor]
+  (.map kstream
+        (java-function org.apache.kafka.streams.kstream.KeyValueMapper processor)))
+
