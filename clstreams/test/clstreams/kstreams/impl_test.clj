@@ -54,13 +54,3 @@
       :exception-types [],
       :flags #{:public :abstract}}
    }})
-
-(deftest test-protocol-def
-  (testing "protocol definition contents are correct"
-    (let [[head name & methods] (protocol-def 'KTableProto ktable-refl)
-          method-map (into {} (map vec methods))]
-      (is (= head 'clojure.core/defprotocol))
-      (is (= name 'KTableProto))
-      (is (= (count methods) 3))
-      (is (= (set (keys method-map)) #{'groupBy 'through 'to}))
-      (is (= (count (get method-map 'to)) 3)))))

@@ -11,13 +11,6 @@
        (~(:name method-refl) [_# ~@param-syms]
         (~impl-fn-expr ~@param-syms)))))
 
-(defn protocol-def
-  [name {:keys [members] :as iface-refl}]
-  (letfn [(method-def [{:keys [name parameter-types]}]
-            `(~name ~(vec (map (fn [_] (gensym)) parameter-types))))]
-  `(defprotocol ~name
-     ~@(map method-def members))))
-
 (defn ks-groupByKey
   [kstream]
   (.groupByKey kstream))
