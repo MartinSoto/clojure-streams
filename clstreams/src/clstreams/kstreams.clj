@@ -1,8 +1,5 @@
 (ns clstreams.kstreams
-  (:refer-clojure :only [let get])
-  (:require [clstreams.kstreams.impl :as impl]))
+  (:refer-clojure :only [])
+  (:require [clstreams.kstreams.impl :refer [ns-defs kstream-operations]]))
 
-(let [ops impl/kstream-operations]
-  (def groupByKey (get ops "groupByKey"))
-  (def flatMapValues (get ops "flatMapValues"))
-  (def map (get ops "map")))
+(ns-defs kstream-operations)

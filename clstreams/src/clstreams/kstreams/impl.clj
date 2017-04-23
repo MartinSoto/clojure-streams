@@ -11,6 +11,16 @@
        (~(:name method-refl) [_# ~@param-syms]
         (~impl-fn-expr ~@param-syms)))))
 
+(defn def-form-for-map-key [map-name-sym map-key]
+  `(def ~(symbol map-key) (get ~map-name-sym ~map-key)))
+
+(defmacro ns-defs
+  [defs-map-expr]
+  (let [defs-map (eval defs-map-expr)
+        binding-sym (gensym "defs")]
+    `(let [~binding-sym ~defs-map-expr]
+       ~@(map (partial def-form-for-map-key binding-sym) (keys defs-map)))))
+
 (def kstream-operations
   {"groupByKey" (fn [kstream]
                   (.groupByKey kstream))

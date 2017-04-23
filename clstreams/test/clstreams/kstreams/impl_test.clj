@@ -20,6 +20,22 @@
     (let [init (java-function Initializer (fn [] 25))]
       (is (= (.apply init) 25)))))
 
+(deftest test-def-form-for-map-key
+  (testing "Builds a definition form for a fixed map name and key"
+    (is (= (def-form-for-map-key 'some-map "kkqq")
+           '(def kkqq (clojure.core/get some-map "kkqq"))))))
+
+(deftest test-ns-defs
+  (testing "Builds defs for basic objects"
+    (try
+      (let [test-ns (create-ns 'ze-ns)]
+        (binding [*ns* test-ns]
+          (eval '(clojure.core/refer 'clstreams.kstreams.impl))
+          (eval '(ns-defs {"a" 1 "b" 2})))
+        (is (= (var-get (get (ns-interns test-ns) 'a)) 1))
+        (is (= (var-get (get (ns-interns test-ns) 'b)) 2)))
+      (finally (remove-ns 'ze-ns)))))
+
 (def ktable-refl
   {:bases nil,
    :flags #{:interface :public :abstract},
