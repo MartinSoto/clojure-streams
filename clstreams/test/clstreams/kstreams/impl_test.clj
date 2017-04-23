@@ -36,37 +36,32 @@
         (is (= (var-get (get (ns-interns test-ns) 'b)) 2)))
       (finally (remove-ns 'ze-ns)))))
 
-(def ktable-refl
-  {:bases nil,
-   :flags #{:interface :public :abstract},
-   :members
-   #{
-     {:name 'groupBy,
-      :return-type org.apache.kafka.streams.kstream.KGroupedTable,
-      :declaring-class org.apache.kafka.streams.kstream.KTable,
-      :parameter-types
-      [org.apache.kafka.streams.kstream.KeyValueMapper
-       org.apache.kafka.common.serialization.Serde
-       org.apache.kafka.common.serialization.Serde],
-      :exception-types [],
-      :flags #{:public :abstract}}
-     {:name 'through,
-      :return-type org.apache.kafka.streams.kstream.KTable,
-      :declaring-class org.apache.kafka.streams.kstream.KTable,
-      :parameter-types
-      [org.apache.kafka.common.serialization.Serde
-       org.apache.kafka.common.serialization.Serde
-       java.lang.String
-       java.lang.String],
-      :exception-types [],
-      :flags #{:public :abstract}}
-     {:name 'to,
-      :return-type 'void,
-      :declaring-class org.apache.kafka.streams.kstream.KTable,
-      :parameter-types
-      [org.apache.kafka.common.serialization.Serde
-       org.apache.kafka.common.serialization.Serde
-       java.lang.String],
-      :exception-types [],
-      :flags #{:public :abstract}}
-   }})
+(deftest test-method-wrapper-expr
+  (testing "Can wrap a simple method"
+    (let [wrapper-code (method-wrapper-expr 'getOrDefault
+                                            [java.lang.String java.lang.Long]
+                                            {})
+          wrapper (eval wrapper-code)]
+      (is (= (wrapper {"a" 1} "b" 3) 3))))
+  (testing "Can translate the type of a parameter"
+    (let [wrapper-code (method-wrapper-expr 'getOrDefault
+                                            [java.lang.String java.lang.Long]
+                                            {java.lang.Long (fn [ps] `(str ~ps))})
+          wrapper (eval wrapper-code)]
+      (is (= (wrapper {"a" 1} "b" 3) "3")))))
+
+(def map-refl
+  {:members
+   #{{:name 'get
+      :parameter-types ['java.lang.String]}
+     {:name 'getOrDefault
+      :parameter-types ['java.lang.String 'java.lang.Long]}}})
+
+(deftest test-method-wrappers-map-expr
+  (testing "Builds a wrapper map for a full class reflexion"
+    (let [map-code (method-wrappers-map-expr map-refl
+                                             {'java.lang.Long (fn [ps] `(str ~ps))})
+          method-wrappers (eval map-code)]
+      (is (= (set (keys method-wrappers)) #{"get" "getOrDefault"}))
+      (is (= ((method-wrappers "get") {"a" 1} "a") 1))
+      (is (= ((method-wrappers "getOrDefault") {"a" 1} "b" 3) "3")))))
