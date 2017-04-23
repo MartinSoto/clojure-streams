@@ -11,17 +11,13 @@
        (~(:name method-refl) [_# ~@param-syms]
         (~impl-fn-expr ~@param-syms)))))
 
-(defn ks-groupByKey
-  [kstream]
-  (.groupByKey kstream))
-
-(defn ks-flatMapValues
-  [kstream processor]
-  (.flatMapValues kstream
-                  (java-function org.apache.kafka.streams.kstream.ValueMapper processor)))
-
-(defn ks-map
-  [kstream processor]
-  (.map kstream
-        (java-function org.apache.kafka.streams.kstream.KeyValueMapper processor)))
-
+(def kstream-operations
+  {"groupByKey" (fn [kstream]
+                  (.groupByKey kstream))
+   "flatMapValues" (fn [kstream processor]
+                     (.flatMapValues kstream
+                                     (java-function org.apache.kafka.streams.kstream.ValueMapper
+                                                    processor)))
+   "map" (fn [kstream processor]
+           (.map kstream
+                 (java-function org.apache.kafka.streams.kstream.KeyValueMapper processor)))})
