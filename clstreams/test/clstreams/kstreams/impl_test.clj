@@ -51,11 +51,34 @@
       (is (= (wrapper {"a" 1} "b" 3) "3")))))
 
 (def map-refl
-  {:members
-   #{{:name 'get
-      :parameter-types ['java.lang.String]}
-     {:name 'getOrDefault
-      :parameter-types ['java.lang.String 'java.lang.Long]}}})
+  '{:members
+    #{{:name get
+       :parameter-types [java.lang.String]
+       :return-type java.lang.Long}
+      {:name getOrDefault
+       :parameter-types [java.lang.String java.lang.Long]
+       :return-type java.lang.Long}}})
+
+(def map-refl-overload
+  '{:members
+    #{{:name get
+       :parameter-types [java.lang.String java.lang.Integer]
+       :return-type java.lang.Integer}
+      {:name get
+       :parameter-types [java.lang.String]
+       :return-type java.lang.Long}
+      {:name getOrDefault
+       :parameter-types [java.lang.String java.lang.Long]
+       :return-type java.lang.Long}}})
+
+(def mutable-map-refl-overload
+  '{:members
+    #{{:name get
+       :parameter-types [java.lang.String]
+       :return-type java.lang.Long}
+      {:name put
+       :parameter-types [java.lang.String java.lang.Long]
+       :return-type java.lang.Long}}})
 
 (deftest test-method-wrappers-map-expr
   (testing "Builds a wrapper map for a full class reflexion"
@@ -65,3 +88,47 @@
       (is (= (set (keys method-wrappers)) #{"get" "getOrDefault"}))
       (is (= ((method-wrappers "get") {"a" 1} "a") 1))
       (is (= ((method-wrappers "getOrDefault") {"a" 1} "b" 3) "3")))))
+
+(deftest test-add-refl-to-multimethods-data
+  (testing "Builds initial data structure from simple reflection"
+    (is (= (add-refl-to-multimethods-data {} 'java.util.Map map-refl)
+           '{getOrDefault
+             {[java.util.Map 2]
+              {:parameter-types [java.lang.String java.lang.Long],
+               :return-type java.lang.Long}},
+             get {[java.util.Map 1]
+                  {:parameter-types [java.lang.String],
+                   :return-type java.lang.Long}}})))
+  (testing "Builds initial data structure from reflection with overloaded methods"
+    (is (= (add-refl-to-multimethods-data {} 'java.util.Map map-refl-overload)
+           '{getOrDefault
+             {[java.util.Map 2]
+              {:parameter-types [java.lang.String java.lang.Long],
+               :return-type java.lang.Long}},
+             get
+             {[java.util.Map 1]
+              {:parameter-types [java.lang.String], :return-type java.lang.Long},
+              [java.util.Map 2]
+              {:parameter-types [java.lang.String java.lang.Integer],
+               :return-type java.lang.Integer}}})))
+  (testing "Extends data structure with methods from a second class"
+    (let [initial (add-refl-to-multimethods-data {} 'java.util.Map map-refl-overload)]
+      (is (= (add-refl-to-multimethods-data initial 'the.lib.MutableMap
+                                            mutable-map-refl-overload)
+             '{getOrDefault
+               {[java.util.Map 2]
+                {:parameter-types [java.lang.String java.lang.Long],
+                 :return-type java.lang.Long}},
+               get
+               {[java.util.Map 1]
+                {:parameter-types [java.lang.String], :return-type java.lang.Long},
+                [java.util.Map 2]
+                {:parameter-types [java.lang.String java.lang.Integer],
+                 :return-type java.lang.Integer},
+                [the.lib.MutableMap 1]
+                {:parameter-types [java.lang.String], :return-type java.lang.Long}},
+               put
+               {[the.lib.MutableMap 2]
+                {:parameter-types [java.lang.String java.lang.Long],
+                 :return-type java.lang.Long}}})))))
+

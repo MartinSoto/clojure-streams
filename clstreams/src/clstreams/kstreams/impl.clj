@@ -37,6 +37,17 @@
                           (method-wrapper-expr name parameter-types type-mappings)])
                        members)))
 
+(defn add-refl-to-multimethods-data
+  [initial-mm-data class-name {:keys [members]}]
+  (reduce
+   (fn
+     [mm-data {:keys [name parameter-types return-type]}]
+     (assoc-in mm-data [name [class-name (count parameter-types)]]
+               {:parameter-types parameter-types
+                :return-type return-type}))
+   initial-mm-data
+   members))
+
 (defmacro iface-method-mappers [iface-symbol type-mappings-expr]
   (let [iface-refl (clojure.reflect/reflect (eval iface-symbol))
         type-mappings (eval type-mappings-expr)]
