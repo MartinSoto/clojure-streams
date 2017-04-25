@@ -5,6 +5,35 @@
             Aggregator KeyValueMapper KGroupedTable KTable Initializer]
            [org.apache.kafka.common.serialization Serde]))
 
+(defmacro in-temp-ns
+  [ns-name-sym run-in-ns-expr & test-assertions]
+  `(let [test-ns-name# (gensym "test-ns")]
+     (try
+       (let [~ns-name-sym (create-ns test-ns-name#)]
+         (binding [*ns* ~ns-name-sym]
+           (eval '~run-in-ns-expr))
+         ~@test-assertions)
+       (finally (remove-ns test-ns-name#)))))
+
+(def some-var 3)
+
+(deftest test-in-temp-ns
+  (testing "basic operation"
+    (in-temp-ns
+     tns
+     (do
+       (def aa 3)
+       (def bb :xx))
+     (is (= (var-get (ns-resolve tns 'aa)) 3))
+     (is (= (var-get (ns-resolve tns 'bb)) :xx))))
+  (testing "def does not interact with global def of same symbol"
+    (in-temp-ns
+     tns
+     (do
+       (def some-var 5))
+     (is (= (var-get (ns-resolve tns 'some-var)) 5)))
+    (is (= some-var 3))))
+
 (deftest test-java-function
   (testing "Can build a functional interface from an inline function"
     (let [kvm (java-function KeyValueMapper (fn [key value] [(+ 2 key) (* 3 value)]))]
@@ -27,16 +56,13 @@
 
 (deftest test-ns-defs
   (testing "Builds defs for basic objects"
-    (let [test-ns-name (gensym "test-ns")]
-      (try
-        (let [test-ns (create-ns test-ns-name)]
-          (binding [*ns* test-ns]
-            (eval '(do
-                     (clojure.core/refer 'clstreams.kstreams.impl)
-                     (ns-defs {"a" 1 "b" 2}))))
-          (is (= (var-get (get (ns-interns test-ns) 'a)) 1))
-          (is (= (var-get (get (ns-interns test-ns) 'b)) 2)))
-        (finally (remove-ns test-ns-name))))))
+    (in-temp-ns
+     test-ns
+     (do
+       (clojure.core/refer 'clstreams.kstreams.impl)
+       (ns-defs {"a" 1 "b" 2}))
+     (is (= (var-get (get (ns-interns test-ns) 'a)) 1))
+     (is (= (var-get (get (ns-interns test-ns) 'b)) 2)))))
 
 (deftest test-method-wrapper-expr
   (testing "Can wrap a simple method"
