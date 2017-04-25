@@ -27,14 +27,16 @@
 
 (deftest test-ns-defs
   (testing "Builds defs for basic objects"
-    (try
-      (let [test-ns (create-ns 'ze-ns)]
-        (binding [*ns* test-ns]
-          (eval '(clojure.core/refer 'clstreams.kstreams.impl))
-          (eval '(ns-defs {"a" 1 "b" 2})))
-        (is (= (var-get (get (ns-interns test-ns) 'a)) 1))
-        (is (= (var-get (get (ns-interns test-ns) 'b)) 2)))
-      (finally (remove-ns 'ze-ns)))))
+    (let [test-ns-name (gensym "test-ns")]
+      (try
+        (let [test-ns (create-ns test-ns-name)]
+          (binding [*ns* test-ns]
+            (eval '(do
+                     (clojure.core/refer 'clstreams.kstreams.impl)
+                     (ns-defs {"a" 1 "b" 2}))))
+          (is (= (var-get (get (ns-interns test-ns) 'a)) 1))
+          (is (= (var-get (get (ns-interns test-ns) 'b)) 2)))
+        (finally (remove-ns test-ns-name))))))
 
 (deftest test-method-wrapper-expr
   (testing "Can wrap a simple method"
