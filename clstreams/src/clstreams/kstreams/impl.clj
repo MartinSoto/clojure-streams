@@ -48,6 +48,17 @@
    initial-mm-data
    members))
 
+(defn multimethod-dispatch [obj & params]
+  [(class obj) (count params)])
+
+(defn multimethod-exprs [mmethod-name mmethod-data]
+  (cons
+   `(defmulti ~mmethod-name multimethod-dispatch)
+   (for [[dispatch-value {:keys [parameter-types]}] mmethod-data]
+     (let [[params-list method-body]
+           (method-wrapping-forms mmethod-name parameter-types {})]
+       `(defmethod ~mmethod-name ~dispatch-value ~params-list ~method-body)))))
+
 (defmacro iface-method-mappers [iface-symbol type-mappings-expr]
   (let [iface-refl (clojure.reflect/reflect (eval iface-symbol))
         type-mappings (eval type-mappings-expr)]

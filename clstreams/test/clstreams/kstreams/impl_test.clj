@@ -34,6 +34,8 @@
      (is (= (var-get (ns-resolve tns 'some-var)) 5)))
     (is (= some-var 3))))
 
+(defn val-in-ns [ns sym] (var-get (ns-resolve ns sym)))
+
 (deftest test-java-function
   (testing "Can build a functional interface from an inline function"
     (let [kvm (java-function KeyValueMapper (fn [key value] [(+ 2 key) (* 3 value)]))]
@@ -160,3 +162,77 @@
                 {:parameter-types [java.lang.String java.lang.Long],
                  :return-type java.lang.Long}}})))))
 
+(deftest test-multimethod-expr
+  (testing "Builds a multimethod for one signature"
+    (in-temp-ns
+     test-ns
+     (do
+       (clojure.core/refer-clojure)
+       (refer 'clstreams.kstreams.impl)
+
+       (doseq [expr
+               (multimethod-exprs 'getOrDefault
+                                  {[java.util.Map 2]
+                                   {:parameter-types [java.lang.String java.lang.Long],
+                                    :return-type java.lang.Long}})]
+         (eval expr))
+
+       (def res1 (getOrDefault {"a" 1} "b" 3)))
+
+     (is (= (val-in-ns test-ns 'res1) 3))))
+
+  (testing "Builds a multimethod for two signatures"
+    (in-temp-ns
+     test-ns
+     (do
+       (clojure.core/refer-clojure)
+       (refer 'clstreams.kstreams.impl)
+
+       (doseq [expr
+               (multimethod-exprs 'replace
+                                  {[java.util.Map 2]
+                                   {:parameter-types [java.lang.String java.lang.Long],
+                                    :return-type java.lang.Long},
+                                   [java.util.Map 3]
+                                   {:parameter-types [java.lang.String java.lang.Long
+                                                      java.lang.Long],
+                                    :return-type java.lang.Boolean}})]
+         (eval expr))
+
+       (def hm (java.util.HashMap.))
+       (.put hm "a" 1)
+       (def res1 (replace hm "a" 3))
+       (def res2 (replace hm "a" 2 5))
+       (def res3 (replace hm "a" 3 5)))
+
+     (is (= (val-in-ns test-ns 'res1) 1))
+     (is (= (val-in-ns test-ns 'res2) false))
+     (is (= (val-in-ns test-ns 'res3) true))))
+
+  (testing "Builds a multimethod working on two different classes"
+    (in-temp-ns
+     test-ns
+     (do
+       (clojure.core/refer-clojure)
+       (refer 'clstreams.kstreams.impl)
+
+       (doseq [expr
+               (multimethod-exprs 'size
+                                  {[java.util.Map 0]
+                                   {:parameter-types [],
+                                    :return-type java.lang.Integer},
+                                   [java.util.List 0]
+                                   {:parameter-types [],
+                                    :return-type java.lang.Integer}})]
+         (eval expr))
+
+       (def hm (java.util.HashMap.))
+       (.put hm "a" 1)
+       (.put hm "b" 2)
+       (def ls (java.util.LinkedList.))
+       (.add ls 7)
+       (def res1 (size hm))
+       (def res2 (size ls)))
+
+     (is (= (val-in-ns test-ns 'res1) 2))
+     (is (= (val-in-ns test-ns 'res2) 1)))))
