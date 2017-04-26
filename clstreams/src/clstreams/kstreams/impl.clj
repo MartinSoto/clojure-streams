@@ -21,20 +21,20 @@
     `(let [~binding-sym ~defs-map-expr]
        ~@(map (partial def-form-for-map-key binding-sym) (keys defs-map)))))
 
-(defn method-wrapper-expr
+(defn method-wrapping-forms
   [method-name-sym param-types type-mappings]
   (let [method-call-sym (symbol (str "." (name method-name-sym)))
         param-syms (map (fn [_] (gensym "p")) param-types)]
-    `(fn [obj# ~@param-syms]
-       (~method-call-sym obj#
-        ~@(map (fn [typ sym] ((get type-mappings typ identity) sym))
-               param-types param-syms)))))
+    `([obj# ~@param-syms]
+      (~method-call-sym obj#
+       ~@(map (fn [typ sym] ((get type-mappings typ identity) sym))
+              param-types param-syms)))))
 
 (defn method-wrappers-map-expr
   [{:keys [members]} type-mappings]
   `(hash-map ~@(mapcat (fn [{:keys [name parameter-types]}]
                          [(clojure.core/name name)
-                          (method-wrapper-expr name parameter-types type-mappings)])
+                          `(fn ~@(method-wrapping-forms name parameter-types type-mappings))])
                        members)))
 
 (defn add-refl-to-multimethods-data

@@ -64,18 +64,18 @@
      (is (= (var-get (get (ns-interns test-ns) 'a)) 1))
      (is (= (var-get (get (ns-interns test-ns) 'b)) 2)))))
 
-(deftest test-method-wrapper-expr
+(deftest test-method-wrapping-forms
   (testing "Can wrap a simple method"
-    (let [wrapper-code (method-wrapper-expr 'getOrDefault
-                                            [java.lang.String java.lang.Long]
-                                            {})
-          wrapper (eval wrapper-code)]
+    (let [wrapping-forms (method-wrapping-forms 'getOrDefault
+                                                [java.lang.String java.lang.Long]
+                                                {})
+          wrapper (eval `(fn ~@wrapping-forms))]
       (is (= (wrapper {"a" 1} "b" 3) 3))))
   (testing "Can translate the type of a parameter"
-    (let [wrapper-code (method-wrapper-expr 'getOrDefault
-                                            [java.lang.String java.lang.Long]
-                                            {java.lang.Long (fn [ps] `(str ~ps))})
-          wrapper (eval wrapper-code)]
+    (let [wrapping-forms (method-wrapping-forms 'getOrDefault
+                                                [java.lang.String java.lang.Long]
+                                                {java.lang.Long (fn [ps] `(str ~ps))})
+          wrapper (eval `(fn ~@wrapping-forms))]
       (is (= (wrapper {"a" 1} "b" 3) "3")))))
 
 (def map-refl
