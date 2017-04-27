@@ -48,6 +48,12 @@
    initial-mm-data
    members))
 
+(defn add-class-to-multimethods-data [initial-mm-data class]
+  (let [class-name (symbol (.getName class))
+        class-refl (clojure.reflect/reflect class)]
+    (add-refl-to-multimethods-data initial-mm-data class-name class-refl)))
+
+
 (defn multimethod-dispatch [obj & params]
   [(class obj) (count params)])
 
@@ -59,11 +65,18 @@
            (method-wrapping-forms mmethod-name parameter-types type-mappings)]
        `(defmethod ~mmethod-name ~dispatch-value ~params-list ~method-body)))))
 
+(defn exprs-from-multimethods-data [mm-data type-mappings]
+  (mapcat (fn [[method-name method-data]]
+            (multimethod-exprs method-name method-data type-mappings)) mm-data))
+
+(defmacro define-multimethods [mm-def-list]
+  (cons 'do (eval mm-def-list)))
+
+
 (defmacro iface-method-mappers [iface-symbol type-mappings-expr]
   (let [iface-refl (clojure.reflect/reflect (eval iface-symbol))
         type-mappings (eval type-mappings-expr)]
     (method-wrappers-map-expr iface-refl type-mappings)))
-
 
 (def function-type-mappers
   {'org.apache.kafka.streams.kstream.KeyValueMapper
@@ -71,6 +84,14 @@
    'org.apache.kafka.streams.kstream.ValueMapper
    (fn [proc-expr] `(java-function org.apache.kafka.streams.kstream.ValueMapper ~proc-expr))})
 
+(def kstreams-mm-data
+  (reduce add-class-to-multimethods-data
+          {}
+          [org.apache.kafka.streams.kstream.KStream]))
+
+(def kstream-multimethod-defs (exprs-from-multimethods-data kstreams-mm-data
+                                                            function-type-mappers))
+
+
 (def kstream-operations
   (iface-method-mappers org.apache.kafka.streams.kstream.KStream function-type-mappers))
-
