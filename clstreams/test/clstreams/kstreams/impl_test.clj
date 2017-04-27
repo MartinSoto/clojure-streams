@@ -186,7 +186,7 @@
     (in-temp-ns
      test-ns
      (do
-       (clojure.core/refer-clojure)
+       (clojure.core/refer-clojure :exclude '[replace])
        (refer 'clstreams.kstreams.impl)
 
        (doseq [expr
