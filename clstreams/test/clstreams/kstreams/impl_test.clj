@@ -51,21 +51,6 @@
     (let [init (java-function Initializer (fn [] 25))]
       (is (= (.apply init) 25)))))
 
-(deftest test-def-form-for-map-key
-  (testing "Builds a definition form for a fixed map name and key"
-    (is (= (def-form-for-map-key 'some-map "kkqq")
-           '(def kkqq (clojure.core/get some-map "kkqq"))))))
-
-(deftest test-ns-defs
-  (testing "Builds defs for basic objects"
-    (in-temp-ns
-     test-ns
-     (do
-       (clojure.core/refer 'clstreams.kstreams.impl)
-       (ns-defs {"a" 1 "b" 2}))
-     (is (= (var-get (get (ns-interns test-ns) 'a)) 1))
-     (is (= (var-get (get (ns-interns test-ns) 'b)) 2)))))
-
 (deftest test-method-wrapping-forms
   (testing "Can wrap a simple method"
     (let [wrapping-forms (method-wrapping-forms 'getOrDefault
@@ -109,15 +94,6 @@
       {:name put
        :parameter-types [java.lang.String java.lang.Long]
        :return-type java.lang.Long}}})
-
-(deftest test-method-wrappers-map-expr
-  (testing "Builds a wrapper map for a full class reflexion"
-    (let [map-code (method-wrappers-map-expr map-refl
-                                             {'java.lang.Long (fn [ps] `(str ~ps))})
-          method-wrappers (eval map-code)]
-      (is (= (set (keys method-wrappers)) #{"get" "getOrDefault"}))
-      (is (= ((method-wrappers "get") {"a" 1} "a") 1))
-      (is (= ((method-wrappers "getOrDefault") {"a" 1} "b" 3) "3")))))
 
 (deftest test-add-refl-to-multimethods-data
   (testing "Builds initial data structure from simple reflection"
