@@ -174,7 +174,8 @@
                (multimethod-exprs 'getOrDefault
                                   {[java.util.Map 2]
                                    {:parameter-types [java.lang.String java.lang.Long],
-                                    :return-type java.lang.Long}})]
+                                    :return-type java.lang.Long}}
+                                  {})]
          (eval expr))
 
        (def res1 (getOrDefault {"a" 1} "b" 3)))
@@ -196,7 +197,8 @@
                                    [java.util.Map 3]
                                    {:parameter-types [java.lang.String java.lang.Long
                                                       java.lang.Long],
-                                    :return-type java.lang.Boolean}})]
+                                    :return-type java.lang.Boolean}}
+                                  {})]
          (eval expr))
 
        (def hm (java.util.HashMap.))
@@ -223,7 +225,8 @@
                                     :return-type java.lang.Integer},
                                    [java.util.List 0]
                                    {:parameter-types [],
-                                    :return-type java.lang.Integer}})]
+                                    :return-type java.lang.Integer}}
+                                  {})]
          (eval expr))
 
        (def hm (java.util.HashMap.))
@@ -235,4 +238,29 @@
        (def res2 (size ls)))
 
      (is (= (val-in-ns test-ns 'res1) 2))
-     (is (= (val-in-ns test-ns 'res2) 1)))))
+     (is (= (val-in-ns test-ns 'res2) 1))))
+
+  (testing "Builds a multimethod that can translate parameters"
+    (in-temp-ns
+     test-ns
+     (do
+       (clojure.core/refer-clojure)
+       (refer 'clstreams.kstreams.impl)
+
+       (doseq [expr
+               (multimethod-exprs 'add
+                                  {[java.util.List 1]
+                                   {:parameter-types [java.lang.String],
+                                    :return-type java.lang.Boolean},
+                                   [java.util.List 2]
+                                   {:parameter-types [java.lang.Integer, java.lang.String],
+                                    :return-type java.lang.Void}}
+                                  {java.lang.String (fn [s] `(Integer/parseInt ~s))})]
+         (eval expr))
+
+       (def ls (java.util.LinkedList.))
+       (add ls "20")
+       (add ls "5")
+       (add ls 1 "7"))
+
+     (is (= (val-in-ns test-ns 'ls) '(20 7 5))))))

@@ -51,12 +51,12 @@
 (defn multimethod-dispatch [obj & params]
   [(class obj) (count params)])
 
-(defn multimethod-exprs [mmethod-name mmethod-data]
+(defn multimethod-exprs [mmethod-name mmethod-data type-mappings]
   (cons
    `(defmulti ~mmethod-name multimethod-dispatch)
    (for [[dispatch-value {:keys [parameter-types]}] mmethod-data]
      (let [[params-list method-body]
-           (method-wrapping-forms mmethod-name parameter-types {})]
+           (method-wrapping-forms mmethod-name parameter-types type-mappings)]
        `(defmethod ~mmethod-name ~dispatch-value ~params-list ~method-body)))))
 
 (defmacro iface-method-mappers [iface-symbol type-mappings-expr]
