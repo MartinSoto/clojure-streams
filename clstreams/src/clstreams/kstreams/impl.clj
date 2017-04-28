@@ -28,9 +28,14 @@
   (reduce
    (fn
      [mm-data {:keys [name parameter-types return-type] :as mmethod}]
-     (assoc-in mm-data [name (dispatch-value-fn class-name mmethod)]
-               {:parameter-types parameter-types
-                :return-type return-type}))
+     (update-in mm-data [name (dispatch-value-fn class-name mmethod)]
+                (fn [old]
+                  (if old
+                    (do
+                      (printf "Dispatch value conflict in %s.%s\n" class-name name)
+                      old)
+                    {:parameter-types parameter-types
+                     :return-type return-type}))))
    initial-mm-data
    members))
 
