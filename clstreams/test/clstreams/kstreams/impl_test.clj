@@ -155,7 +155,7 @@
 
        (doseq [expr
                (multimethod-exprs 'getOrDefault
-                                  {[java.util.Map 2]
+                                  {[java.util.Map java.lang.String java.lang.Long]
                                    {:parameter-types [java.lang.String java.lang.Long],
                                     :return-type java.lang.Long}}
                                   {})]
@@ -174,10 +174,11 @@
 
        (doseq [expr
                (multimethod-exprs 'replace
-                                  {[java.util.Map 2]
+                                  {[java.util.Map java.lang.String java.lang.Long]
                                    {:parameter-types [java.lang.String java.lang.Long],
                                     :return-type java.lang.Long},
-                                   [java.util.Map 3]
+                                   [java.util.Map java.lang.String java.lang.Long
+                                    java.lang.Long]
                                    {:parameter-types [java.lang.String java.lang.Long
                                                       java.lang.Long],
                                     :return-type java.lang.Boolean}}
@@ -203,10 +204,10 @@
 
        (doseq [expr
                (multimethod-exprs 'size
-                                  {[java.util.Map 0]
+                                  {[java.util.Map]
                                    {:parameter-types [],
                                     :return-type java.lang.Integer},
-                                   [java.util.List 0]
+                                   [java.util.List]
                                    {:parameter-types [],
                                     :return-type java.lang.Integer}}
                                   {})]
@@ -232,11 +233,11 @@
 
        (doseq [expr
                (multimethod-exprs 'add
-                                  {[java.util.List 1]
+                                  {[java.util.List java.lang.String]
                                    {:parameter-types [java.lang.String],
                                     :return-type java.lang.Boolean},
-                                   [java.util.List 2]
-                                   {:parameter-types [java.lang.Integer, java.lang.String],
+                                   [java.util.List java.lang.Long, java.lang.String]
+                                   {:parameter-types [java.lang.Long, java.lang.String],
                                     :return-type java.lang.Void}}
                                   {java.lang.String (fn [s] `(Integer/parseInt ~s))})]
          (eval expr))

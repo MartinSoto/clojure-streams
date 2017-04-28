@@ -45,8 +45,8 @@
     (add-refl-to-multimethods-data dispatch-value-fn initial-mm-data class-name class-refl)))
 
 
-(defn multimethod-dispatch [obj & params]
-  [(class obj) (count params)])
+(defn multimethod-dispatch [& params]
+  (vec (map class params)))
 
 (defn multimethod-exprs [mmethod-name mmethod-data type-mappings]
   (cons
@@ -70,10 +70,19 @@
    'org.apache.kafka.streams.kstream.ValueMapper
    (fn [proc-expr] `(java-function org.apache.kafka.streams.kstream.ValueMapper ~proc-expr))})
 
+(defn dispatch-value-from-param [param-type]
+  (cond
+    (clojure.string/ends-with? (str param-type) "<>") 'clojure.lang.ISeq
+    (contains? function-type-mappers param-type) 'clojure.lang.IFn
+    :else param-type))
+
+(defn dispatch-value-from-params
+  [class-name-sym {:keys [parameter-types return-type]}]
+  (vec (cons class-name-sym
+             (map dispatch-value-from-param parameter-types))))
+
 (def kstreams-mm-data
-  (reduce (partial add-class-to-multimethods-data
-                   (fn [class-name {:keys [parameter-types return-type]}]
-                     [class-name (count parameter-types)]))
+  (reduce (partial add-class-to-multimethods-data dispatch-value-from-params)
           {}
           [org.apache.kafka.streams.kstream.KStream]))
 
