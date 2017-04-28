@@ -24,20 +24,20 @@
 
 
 (defn add-refl-to-multimethods-data
-  [initial-mm-data class-name {:keys [members]}]
+  [dispatch-value-fn initial-mm-data class-name {:keys [members]}]
   (reduce
    (fn
-     [mm-data {:keys [name parameter-types return-type]}]
-     (assoc-in mm-data [name [class-name (count parameter-types)]]
+     [mm-data {:keys [name parameter-types return-type] :as mmethod}]
+     (assoc-in mm-data [name (dispatch-value-fn class-name mmethod)]
                {:parameter-types parameter-types
                 :return-type return-type}))
    initial-mm-data
    members))
 
-(defn add-class-to-multimethods-data [initial-mm-data class]
+(defn add-class-to-multimethods-data [dispatch-value-fn initial-mm-data class]
   (let [class-name (symbol (.getName class))
         class-refl (clojure.reflect/reflect class)]
-    (add-refl-to-multimethods-data initial-mm-data class-name class-refl)))
+    (add-refl-to-multimethods-data dispatch-value-fn initial-mm-data class-name class-refl)))
 
 
 (defn multimethod-dispatch [obj & params]
@@ -66,7 +66,9 @@
    (fn [proc-expr] `(java-function org.apache.kafka.streams.kstream.ValueMapper ~proc-expr))})
 
 (def kstreams-mm-data
-  (reduce add-class-to-multimethods-data
+  (reduce (partial add-class-to-multimethods-data
+                   (fn [class-name {:keys [parameter-types return-type]}]
+                     [class-name (count parameter-types)]))
           {}
           [org.apache.kafka.streams.kstream.KStream]))
 

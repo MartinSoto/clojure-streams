@@ -95,9 +95,14 @@
        :parameter-types [java.lang.String java.lang.Long]
        :return-type java.lang.Long}}})
 
+(defn dispatch-value-class-arity
+  [class-name {:keys [parameter-types return-type]}]
+  [class-name (count parameter-types)])
+
 (deftest test-add-refl-to-multimethods-data
   (testing "Builds initial data structure from simple reflection"
-    (is (= (add-refl-to-multimethods-data {} 'java.util.Map map-refl)
+    (is (= (add-refl-to-multimethods-data dispatch-value-class-arity
+                                          {} 'java.util.Map map-refl)
            '{getOrDefault
              {[java.util.Map 2]
               {:parameter-types [java.lang.String java.lang.Long],
@@ -106,7 +111,8 @@
                   {:parameter-types [java.lang.String],
                    :return-type java.lang.Long}}})))
   (testing "Builds initial data structure from reflection with overloaded methods"
-    (is (= (add-refl-to-multimethods-data {} 'java.util.Map map-refl-overload)
+    (is (= (add-refl-to-multimethods-data dispatch-value-class-arity
+                                          {} 'java.util.Map map-refl-overload)
            '{getOrDefault
              {[java.util.Map 2]
               {:parameter-types [java.lang.String java.lang.Long],
@@ -118,8 +124,9 @@
               {:parameter-types [java.lang.String java.lang.Integer],
                :return-type java.lang.Integer}}})))
   (testing "Extends data structure with methods from a second class"
-    (let [initial (add-refl-to-multimethods-data {} 'java.util.Map map-refl-overload)]
-      (is (= (add-refl-to-multimethods-data initial 'the.lib.MutableMap
+    (let [initial (add-refl-to-multimethods-data dispatch-value-class-arity {} 'java.util.Map map-refl-overload)]
+      (is (= (add-refl-to-multimethods-data dispatch-value-class-arity
+                                            initial 'the.lib.MutableMap
                                             mutable-map-refl-overload)
              '{getOrDefault
                {[java.util.Map 2]
