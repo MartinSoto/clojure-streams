@@ -88,7 +88,7 @@
 
 (defn dispatch-value-from-param [param-type-sym]
   (cond
-    (clojure.string/ends-with? (str param-type-sym) "<>") 'clojure.lang.ISeq
+    (clojure.string/ends-with? (str param-type-sym) "<>") 'clojure.lang.Seqable
     (contains? function-type-param-wrappers param-type-sym) 'clojure.lang.IFn
     :else param-type-sym))
 
@@ -96,6 +96,14 @@
   [class-name-sym {:keys [parameter-types return-type]}]
   (vec (cons class-name-sym
              (map dispatch-value-from-param parameter-types))))
+
+(defn param-wrapper-for-type
+  [param-type-sym]
+  (let [type-name (str 'String<>)]
+    (if (clojure.string/ends-with? (str param-type-sym) "<>")
+      (let [elem-type-sym (symbol (subs type-name 0 (- (count type-name) 2)))]
+        (fn [seq-expr] `(into-array ~elem-type-sym ~seq-expr)))
+      (get function-type-param-wrappers param-type-sym identity))))
 
 (def kstreams-mm-data
   (reduce (partial add-class-to-multimethods-data dispatch-value-from-params)
@@ -106,4 +114,4 @@
            org.apache.kafka.streams.kstream.KGroupedTable]))
 
 (def kstream-multimethod-defs (exprs-from-multimethods-data kstreams-mm-data
-                                                            #(get function-type-param-wrappers % identity)))
+                                                            param-wrapper-for-type))
