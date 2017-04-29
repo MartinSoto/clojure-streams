@@ -55,13 +55,14 @@
   (testing "Can wrap a simple method"
     (let [wrapping-forms (method-wrapping-forms 'getOrDefault
                                                 [java.lang.String java.lang.Long]
-                                                {})
+                                                (constantly identity))
           wrapper (eval `(fn ~@wrapping-forms))]
       (is (= (wrapper {"a" 1} "b" 3) 3))))
   (testing "Can translate the type of a parameter"
-    (let [wrapping-forms (method-wrapping-forms 'getOrDefault
+    (let [type-mapping-fns {java.lang.Long (fn [ps] `(str ~ps))}
+          wrapping-forms (method-wrapping-forms 'getOrDefault
                                                 [java.lang.String java.lang.Long]
-                                                {java.lang.Long (fn [ps] `(str ~ps))})
+                                                #(get type-mapping-fns % identity))
           wrapper (eval `(fn ~@wrapping-forms))]
       (is (= (wrapper {"a" 1} "b" 3) "3")))))
 
@@ -158,7 +159,7 @@
                                   {[java.util.Map java.lang.String java.lang.Long]
                                    {:parameter-types [java.lang.String java.lang.Long],
                                     :return-type java.lang.Long}}
-                                  {})]
+                                  (constantly identity))]
          (eval expr))
 
        (def res1 (getOrDefault {"a" 1} "b" 3)))
@@ -182,7 +183,7 @@
                                    {:parameter-types [java.lang.String java.lang.Long
                                                       java.lang.Long],
                                     :return-type java.lang.Boolean}}
-                                  {})]
+                                  (constantly identity))]
          (eval expr))
 
        (def hm (java.util.HashMap.))
@@ -210,7 +211,7 @@
                                    [java.util.List]
                                    {:parameter-types [],
                                     :return-type java.lang.Integer}}
-                                  {})]
+                                  (constantly identity))]
          (eval expr))
 
        (def hm (java.util.HashMap.))
@@ -239,7 +240,7 @@
                                    [java.util.List java.lang.Long, java.lang.String]
                                    {:parameter-types [java.lang.Long, java.lang.String],
                                     :return-type java.lang.Void}}
-                                  {java.lang.String (fn [s] `(Integer/parseInt ~s))})]
+                                  #(get {java.lang.String (fn [s] `(Integer/parseInt ~s))} % identity))]
          (eval expr))
 
        (def ls (java.util.LinkedList.))

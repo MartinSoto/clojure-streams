@@ -14,13 +14,12 @@
 
 
 (defn method-wrapping-forms
-  [method-name-sym param-types type-mappings]
+  [method-name-sym param-types get-param-wrapper-fn]
   (let [method-call-sym (symbol (str "." (name method-name-sym)))
         param-syms (map (fn [_] (gensym "p")) param-types)]
     `([obj# ~@param-syms]
       (~method-call-sym obj#
-       ~@(map (fn [typ sym] ((get type-mappings typ identity) sym))
-              param-types param-syms)))))
+       ~@(map (fn [typ sym] ((get-param-wrapper-fn typ) sym)) param-types param-syms)))))
 
 
 (defn add-refl-to-multimethods-data
@@ -48,23 +47,23 @@
 (defn multimethod-dispatch [& params]
   (vec (map class params)))
 
-(defn multimethod-exprs [mmethod-name mmethod-data type-mappings]
+(defn multimethod-exprs [mmethod-name mmethod-data get-param-wrapper-fn]
   (cons
    `(defmulti ~mmethod-name multimethod-dispatch)
    (for [[dispatch-value {:keys [parameter-types]}] mmethod-data]
      (let [[params-list method-body]
-           (method-wrapping-forms mmethod-name parameter-types type-mappings)]
+           (method-wrapping-forms mmethod-name parameter-types get-param-wrapper-fn)]
        `(defmethod ~mmethod-name ~dispatch-value ~params-list ~method-body)))))
 
-(defn exprs-from-multimethods-data [mm-data type-mappings]
+(defn exprs-from-multimethods-data [mm-data get-param-wrapper-fn]
   (mapcat (fn [[method-name method-data]]
-            (multimethod-exprs method-name method-data type-mappings)) mm-data))
+            (multimethod-exprs method-name method-data get-param-wrapper-fn)) mm-data))
 
 (defmacro define-multimethods [mm-def-list]
   (cons 'do (eval mm-def-list)))
 
 
-(def function-type-mappers
+(def function-type-param-wrappers
   {'org.apache.kafka.streams.kstream.KeyValueMapper
    (fn [proc-expr] `(java-function org.apache.kafka.streams.kstream.KeyValueMapper ~proc-expr))
    'org.apache.kafka.streams.kstream.ValueMapper
@@ -73,7 +72,7 @@
 (defn dispatch-value-from-param [param-type]
   (cond
     (clojure.string/ends-with? (str param-type) "<>") 'clojure.lang.ISeq
-    (contains? function-type-mappers param-type) 'clojure.lang.IFn
+    (contains? function-type-param-wrappers param-type) 'clojure.lang.IFn
     :else param-type))
 
 (defn dispatch-value-from-params
@@ -90,4 +89,4 @@
            org.apache.kafka.streams.kstream.KGroupedTable]))
 
 (def kstream-multimethod-defs (exprs-from-multimethods-data kstreams-mm-data
-                                                            function-type-mappers))
+                                                            #(get function-type-param-wrappers % identity)))
