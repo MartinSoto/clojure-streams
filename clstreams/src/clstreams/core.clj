@@ -71,8 +71,8 @@
       (ks/flatMapValues #(-> % str/lower-case (str/split #" +")))
       (ks/map #(KeyValue. %2 %2))
       ks/groupByKey
-      (.count "Counts")
-      (.to (Serdes/String) (Serdes/Long) "streams-wordcount-output")))
+      (ks/count "Counts")
+      (ks/to (Serdes/String) (Serdes/Long) "streams-wordcount-output")))
 
 (defn count-words
   [& args]
