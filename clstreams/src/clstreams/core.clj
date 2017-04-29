@@ -83,10 +83,7 @@
         source (.stream builder (Serdes/String) (Serdes/Long)
                         (into-array String ["streams-wordcount-output"]))
         print-counts (-> source
-                         (.foreach
-                          (reify ForeachAction
-                            (apply [this key value]
-                              (println key value)))))
+                         (ks/foreach #(println %1 %2)))
         streams (KafkaStreams. builder count-words-props)]
 
     (.start streams)
