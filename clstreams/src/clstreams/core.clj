@@ -67,7 +67,7 @@
 (defn build-count-words
   [builder]
   (-> builder
-      (.stream (into-array String ["streams-file-input"]))
+      (ks/stream ["streams-file-input"])
       (ks/flatMapValues #(-> % str/lower-case (str/split #" +")))
       (ks/map #(KeyValue. %2 %2))
       ks/groupByKey

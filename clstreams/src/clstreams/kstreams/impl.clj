@@ -108,7 +108,8 @@
 (def kstreams-mm-data
   (reduce (partial add-class-to-multimethods-data dispatch-value-from-params)
           {}
-          [org.apache.kafka.streams.kstream.KStream
+          [org.apache.kafka.streams.kstream.KStreamBuilder
+           org.apache.kafka.streams.kstream.KStream
            org.apache.kafka.streams.kstream.KGroupedStream
            org.apache.kafka.streams.kstream.KTable
            org.apache.kafka.streams.kstream.KGroupedTable]))
