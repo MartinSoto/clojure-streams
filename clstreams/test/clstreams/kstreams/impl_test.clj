@@ -75,6 +75,20 @@
        :parameter-types [java.lang.String java.lang.Long]
        :return-type java.lang.Long}}})
 
+(def hashmap-refl
+  '{:members
+    #{{:name java.util.HashMap,
+       :declaring-class java.util.HashMap,
+       :parameter-types [],
+       :exception-types [],
+       :flags #{:public}}
+      {:name get,
+       :return-type java.lang.Object,
+       :declaring-class java.util.HashMap,
+       :parameter-types [java.lang.Object],
+       :exception-types [],
+       :flags #{:public}}}})
+
 (def map-refl-overload
   '{:members
     #{{:name get
@@ -101,7 +115,7 @@
   [class-name (count parameter-types)])
 
 (deftest test-add-refl-to-multimethods-data
-  (testing "Builds initial data structure from simple reflection"
+  (testing "Builds initial data structure from simple interface reflection"
     (is (= (add-refl-to-multimethods-data dispatch-value-class-arity
                                           {} 'java.util.Map map-refl)
            '{getOrDefault
@@ -111,6 +125,12 @@
              get {[java.util.Map 1]
                   {:parameter-types [java.lang.String],
                    :return-type java.lang.Long}}})))
+  (testing "Ignores constructors in class reflection"
+    (is (= (add-refl-to-multimethods-data dispatch-value-class-arity
+                                          {} 'java.util.HashMap hashmap-refl)
+           '{get {[java.util.HashMap 1]
+                  {:parameter-types [java.lang.Object],
+                   :return-type java.lang.Object}}})))
   (testing "Builds initial data structure from reflection with overloaded methods"
     (is (= (add-refl-to-multimethods-data dispatch-value-class-arity
                                           {} 'java.util.Map map-refl-overload)

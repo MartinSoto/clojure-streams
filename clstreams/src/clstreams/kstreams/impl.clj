@@ -24,19 +24,22 @@
 
 (defn add-refl-to-multimethods-data
   [dispatch-value-fn initial-mm-data class-name {:keys [members]}]
-  (reduce
-   (fn
-     [mm-data {:keys [name parameter-types return-type] :as mmethod}]
-     (update-in mm-data [name (dispatch-value-fn class-name mmethod)]
-                (fn [old]
-                  (if old
-                    (do
-                      (printf "Dispatch value conflict in %s.%s\n" class-name name)
-                      old)
-                    {:parameter-types parameter-types
-                     :return-type return-type}))))
-   initial-mm-data
-   members))
+  (->>
+   members
+   (remove
+    #(clojure.string/includes? (str (:name %)) "."))
+   (reduce
+    (fn
+      [mm-data {:keys [name parameter-types return-type] :as mmethod}]
+      (update-in mm-data [name (dispatch-value-fn class-name mmethod)]
+                 (fn [old]
+                   (if old
+                     (do
+                       (printf "Dispatch value conflict in %s.%s\n" class-name name)
+                       old)
+                     {:parameter-types parameter-types
+                      :return-type return-type}))))
+    initial-mm-data)))
 
 (defn add-class-to-multimethods-data [dispatch-value-fn initial-mm-data class]
   (let [class-name (symbol (.getName class))
