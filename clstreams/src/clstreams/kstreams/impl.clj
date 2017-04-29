@@ -14,12 +14,12 @@
 
 
 (defn method-wrapping-forms
-  [method-name-sym param-types get-param-wrapper-fn]
+  [method-name-sym param-types param-wrapper-for-type]
   (let [method-call-sym (symbol (str "." (name method-name-sym)))
         param-syms (map (fn [_] (gensym "p")) param-types)]
     `([obj# ~@param-syms]
       (~method-call-sym obj#
-       ~@(map (fn [typ sym] ((get-param-wrapper-fn typ) sym)) param-types param-syms)))))
+       ~@(map (fn [typ sym] ((param-wrapper-for-type typ) sym)) param-types param-syms)))))
 
 
 (defn add-refl-to-multimethods-data
@@ -50,17 +50,17 @@
 (defn multimethod-dispatch [& params]
   (vec (map class params)))
 
-(defn multimethod-exprs [mmethod-name mmethod-data get-param-wrapper-fn]
+(defn multimethod-exprs [mmethod-name mmethod-data param-wrapper-for-type]
   (cons
    `(defmulti ~mmethod-name multimethod-dispatch)
    (for [[dispatch-value {:keys [parameter-types]}] mmethod-data]
      (let [[params-list method-body]
-           (method-wrapping-forms mmethod-name parameter-types get-param-wrapper-fn)]
+           (method-wrapping-forms mmethod-name parameter-types param-wrapper-for-type)]
        `(defmethod ~mmethod-name ~dispatch-value ~params-list ~method-body)))))
 
-(defn exprs-from-multimethods-data [mm-data get-param-wrapper-fn]
+(defn exprs-from-multimethods-data [mm-data param-wrapper-for-type]
   (mapcat (fn [[method-name method-data]]
-            (multimethod-exprs method-name method-data get-param-wrapper-fn)) mm-data))
+            (multimethod-exprs method-name method-data param-wrapper-for-type)) mm-data))
 
 (defmacro define-multimethods [mm-def-list]
   (cons 'do (eval mm-def-list)))
@@ -86,11 +86,11 @@
    'org.apache.kafka.streams.kstream.ValueMapper
    (fn [proc-expr] `(java-function org.apache.kafka.streams.kstream.ValueMapper ~proc-expr))})
 
-(defn dispatch-value-from-param [param-type]
+(defn dispatch-value-from-param [param-type-sym]
   (cond
-    (clojure.string/ends-with? (str param-type) "<>") 'clojure.lang.ISeq
-    (contains? function-type-param-wrappers param-type) 'clojure.lang.IFn
-    :else param-type))
+    (clojure.string/ends-with? (str param-type-sym) "<>") 'clojure.lang.ISeq
+    (contains? function-type-param-wrappers param-type-sym) 'clojure.lang.IFn
+    :else param-type-sym))
 
 (defn dispatch-value-from-params
   [class-name-sym {:keys [parameter-types return-type]}]
