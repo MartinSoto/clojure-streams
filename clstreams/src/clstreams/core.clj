@@ -1,14 +1,12 @@
 (ns clstreams.core
   (:gen-class)
+  (:require [clojure.string :as str]
+            [clstreams.kstreams :as ks])
   (:import [org.apache.kafka.clients.producer KafkaProducer ProducerRecord]
            [org.apache.kafka.clients.consumer ConsumerConfig]
            [org.apache.kafka.common.serialization Serdes]
            [org.apache.kafka.streams KafkaStreams KeyValue StreamsConfig]
-           [org.apache.kafka.streams.kstream
-            KStreamBuilder KStream KTable KeyValueMapper ValueMapper ForeachAction])
-  (:require [clstreams.kstreams :as ks]))
-
-(require '[clojure.string :as str])
+           [org.apache.kafka.streams.kstream KStreamBuilder]))
 
 (def client-props
   (doto (java.util.Properties.)
