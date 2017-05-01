@@ -10,7 +10,9 @@
                  [org.apache.kafka/kafka-clients "0.10.2.1"]
                  [org.apache.kafka/kafka-clients "0.10.2.1" :classifier "test"]
                  [org.apache.kafka/kafka-streams "0.10.2.1"]
-                 [org.apache.kafka/kafka-streams "0.10.2.1" :classifier "test"]]
+                 [org.apache.kafka/kafka-streams "0.10.2.1" :classifier "test"]
+
+                 [com.stuartsierra/component "0.3.2"]]
 
   :main ^:skip-aot clstreams.core
   :target-path "target/%s"
