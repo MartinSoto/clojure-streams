@@ -2,7 +2,8 @@
   (:gen-class)
   (:require [clojure.string :as str]
             [clstreams.kstreams :as ks]
-            [com.stuartsierra.component :as component])
+            [com.stuartsierra.component :as component]
+            [signal.handler :as signal])
   (:import [org.apache.kafka.clients.producer KafkaProducer ProducerRecord]
            [org.apache.kafka.clients.consumer ConsumerConfig]
            [org.apache.kafka.common.serialization Serdes]
@@ -84,18 +85,31 @@
         (ks/foreach println))
     builder))
 
+(def count-words (new-topology count-words-props (build-count-words)))
+
+(def print-word-counts (new-topology print-word-counts-props (build-print-word-counts)))
+
+
 (defn run-system
   [system]
-  (let [running-system (component/start system)]
-    (println "Running, press enter to stop: ")
-    (read-line)
-    (component/stop running-system)
-    (println "Stopped")))
+  (let [system-state (atom system)
+        stop? (promise)]
 
-(defn run-count-words
-  [& args]
-  (run-system (new-topology count-words-props (build-count-words))))
+    (signal/with-handler :int
+      (println "SIGINT, bye, bye!")
+      (deliver stop? true))
 
-(defn run-print-word-counts
-  [& args]
-  (run-system (new-topology print-word-counts-props (build-print-word-counts))))
+    (swap! system-state component/start)
+    (println "Running")
+
+    @stop?
+
+    (println "Stopping system")
+    (swap! system-state component/stop)
+    (println "System stopped")
+    (System/exit 0)))
+
+(defn -main
+  [func-name]
+  (let [system (eval (symbol func-name))]
+    (run-system system)))

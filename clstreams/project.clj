@@ -12,7 +12,8 @@
                  [org.apache.kafka/kafka-streams "0.10.2.1"]
                  [org.apache.kafka/kafka-streams "0.10.2.1" :classifier "test"]
 
-                 [com.stuartsierra/component "0.3.2"]]
+                 [com.stuartsierra/component "0.3.2"]
+                 [spootnik/signal "0.2.1"]]
 
   :main ^:skip-aot clstreams.core
   :target-path "target/%s"
