@@ -6,6 +6,7 @@
 
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/tools.namespace "0.3.0-alpha3"]
+                 [org.clojure/tools.logging "0.3.1"]
 
                  [org.apache.kafka/kafka-clients "0.10.2.1"]
                  [org.apache.kafka/kafka-clients "0.10.2.1" :classifier "test"]

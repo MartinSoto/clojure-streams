@@ -1,6 +1,7 @@
 (ns clstreams.core
   (:gen-class)
-  (:require [com.stuartsierra.component :as component]
+  (:require [clojure.tools.logging :as log]
+            [com.stuartsierra.component :as component]
             [signal.handler :as signal]
             [clstreams.pipelines]))
 
@@ -10,17 +11,17 @@
         stop? (promise)]
 
     (signal/with-handler :int
-      (println "SIGINT, bye, bye!")
+      (log/info "Received SIGINT")
       (deliver stop? true))
 
     (swap! system-state component/start)
-    (println "Running")
+    (log/info "Topology initialized successfully")
 
     @stop?
 
-    (println "Stopping system")
+    (log/info "Stopping topology")
     (swap! system-state component/stop)
-    (println "System stopped")
+    (log/info "Topology stopped")
     (System/exit 0)))
 
 
