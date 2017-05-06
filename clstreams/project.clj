@@ -5,7 +5,6 @@
             :url "https://www.apache.org/licenses/LICENSE-2.0"}
 
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [org.clojure/tools.namespace "0.3.0-alpha3"]
                  [org.clojure/tools.logging "0.3.1"]
 
                  [org.apache.kafka/kafka-clients "0.10.2.1"]
@@ -20,4 +19,11 @@
   :main ^:skip-aot clstreams.core
   :target-path "target/%s"
 
-  :profiles {:uberjar {:aot :all}})
+  :profiles {:dev
+             {:source-paths ["dev"]
+              :dependencies [[org.clojure/tools.namespace "0.3.0-alpha3"]
+                             [org.clojure/java.classpath "0.2.3"]]
+              :main ^:skip-aot user}
+
+             :uberjar
+             {:aot :all}})
