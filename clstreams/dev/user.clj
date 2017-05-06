@@ -10,6 +10,7 @@
 
    [com.stuartsierra.component :as component]
 
+   [clstreams.core :refer (run-and-handle-signals)]
    [clstreams.pipelines :refer (count-words)]))
 
 (def system nil)
@@ -35,5 +36,12 @@
 
 
 (defn -main
-  [func-name]
-  (println "This is user.clj talking!"))
+  [& _]
+  (let [[func-name & args] *command-line-args*
+        system-init-fn (eval (symbol func-name))]
+    (alter-var-root #'system
+                    (constantly (apply system-init-fn args)))
+    (run-and-handle-signals
+     (alter-var-root #'system component/start)
+     (alter-var-root #'system component/stop)
+     (refresh :after 'user/-main))))
