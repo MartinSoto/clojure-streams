@@ -5,42 +5,51 @@
             [signal.handler :as signal]
             [clstreams.pipelines]))
 
-(defn run-system
-  [system-var]
-  (let [next-step (promise)
-        orig-handlers
-        (->
-         {}
-         (into (for [sgn [:term :int]]
-                 [sgn
-                  (signal/with-handler sgn
-                    (log/debugf "Received SIG%s" (-> sgn name .toUpperCase))
-                    (deliver next-step :end))]))
-         (into (for [sgn [:hup]]
-                 [sgn
-                  (signal/with-handler sgn
-                    (log/debugf "Received SIG%s" (-> sgn name .toUpperCase))
-                    (deliver next-step :restart))])))]
+(defn trap-signals [action-promise]
+  (->
+   {}
+   (into (for [sgn [:term :int]]
+           [sgn
+            (signal/with-handler sgn
+              (log/debugf "Received SIG%s" (-> sgn name .toUpperCase))
+              (deliver action-promise :end))]))
+   (into (for [sgn [:hup]]
+           [sgn
+            (signal/with-handler sgn
+              (log/debugf "Received SIG%s" (-> sgn name .toUpperCase))
+              (deliver action-promise :restart))]))))
 
-    (alter-var-root system-var component/start)
+(defn untrap-signals [orig-handlers]
+  (doseq [[sgn orig-handler] orig-handlers]
+    (sun.misc.Signal/handle (signal/->signal :int) orig-handler)))
 
-    (let [ns @next-step]
+(defmacro run-and-handle-signals
+  [start-expr stop-expr restart-expr]
+  `(let [next-step# (promise)
+         orig-handlers# (trap-signals next-step#)]
 
-      (doseq [[sgn orig-handler] orig-handlers]
-        (sun.misc.Signal/handle (signal/->signal :int) orig-handler))
+     ~start-expr
 
-      (alter-var-root system-var component/stop)
+     (let [ns# @next-step#]
 
-      (case ns
-        :end (System/exit 0)
-        :restart (recur system-var)))))
+       (untrap-signals orig-handlers#)
+
+       ~stop-expr
+
+       (case ns#
+         :end (System/exit 0)
+         :restart ~restart-expr))))
 
 
 (def system nil)
 
 (defn -main
-  [func-name & args]
-  (let [system-init-fn (eval (symbol func-name))]
+  [& _]
+  (let [[func-name & args] *command-line-args*
+        system-init-fn (eval (symbol func-name))]
     (alter-var-root #'system
-                    (constantly (apply system-init-fn args))))
-  (run-system #'system))
+                    (constantly (apply system-init-fn args)))
+    (run-and-handle-signals
+     (alter-var-root #'system component/start)
+     (alter-var-root #'system component/stop)
+     (recur []))))
