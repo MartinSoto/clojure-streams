@@ -22,7 +22,6 @@
                     (log/debugf "Received SIG%s" (-> sgn name .toUpperCase))
                     (deliver next-step :restart))])))]
 
-    (log/info "Starting topology")
     (alter-var-root system-var component/start)
 
     (let [ns @next-step]
@@ -30,7 +29,6 @@
       (doseq [[sgn orig-handler] orig-handlers]
         (sun.misc.Signal/handle (signal/->signal :int) orig-handler))
 
-      (log/info "Stopping topology")
       (alter-var-root system-var component/stop)
 
       (case ns

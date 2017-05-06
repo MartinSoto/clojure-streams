@@ -1,5 +1,6 @@
 (ns clstreams.kstreams.component
-  (:require [com.stuartsierra.component :as component])
+  (:require [clojure.tools.logging :as log]
+            [com.stuartsierra.component :as component])
   (:import [org.apache.kafka.streams KafkaStreams StreamsConfig]))
 
 (defrecord Topology [config builder kstreams]
@@ -7,10 +8,12 @@
 
   (start [component]
     (let [streams (KafkaStreams. builder (StreamsConfig. config))]
+      (log/info "Starting topology")
       (.start streams)
       (assoc component :kstreams streams)))
 
   (stop [component]
+    (log/info "Stopping topology")
     (.close kstreams)
     (assoc component :kstreams nil)))
 
