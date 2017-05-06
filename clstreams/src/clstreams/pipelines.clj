@@ -69,7 +69,9 @@
         (ks/foreach println))
     builder))
 
-(def count-words (new-topology count-words-props (build-count-words)))
+(defn count-words []
+  (new-topology count-words-props (build-count-words)))
 
-(def print-word-counts (new-topology print-word-counts-props (build-print-word-counts)))
+(defn print-word-counts []
+  (new-topology print-word-counts-props (build-print-word-counts)))
 

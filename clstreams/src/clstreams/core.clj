@@ -6,7 +6,7 @@
             [clstreams.pipelines]))
 
 (defn run-system
-  [system-state-var]
+  [system-var]
   (let [next-step (promise)
         orig-handlers
         (->
@@ -23,7 +23,7 @@
                     (deliver next-step :restart))])))]
 
     (log/info "Starting topology")
-    (alter-var-root system-state-var component/start)
+    (alter-var-root system-var component/start)
 
     (let [ns @next-step]
 
@@ -31,14 +31,18 @@
         (sun.misc.Signal/handle (signal/->signal :int) orig-handler))
 
       (log/info "Stopping topology")
-      (alter-var-root system-state-var component/stop)
+      (alter-var-root system-var component/stop)
 
       (case ns
         :end (System/exit 0)
-        :restart (recur system-state-var)))))
+        :restart (recur system-var)))))
 
+
+(def system nil)
 
 (defn -main
-  [func-name]
-  (def system-state (eval (symbol func-name)))
-  (run-system #'system-state))
+  [func-name & args]
+  (let [system-init-fn (eval (symbol func-name))]
+    (alter-var-root #'system
+                    (constantly (apply system-init-fn args))))
+  (run-system #'system))
