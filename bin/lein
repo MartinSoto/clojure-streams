@@ -2,15 +2,16 @@
 
 COMPOSE_SERVICE=clojure
 PROGRAM=lein
-REPL_PORT=7788
 
 cnt_name=$PROGRAM.$$
 
 start_container() {
     compose_project=${PROJECT_DIR:-.}/docker-compose.yml
+
     task_options=""
-    if echo "$@" | grep -e '\<repl\>'; then
-        task_options="$task_options -p $REPL_PORT:$REPL_PORT"
+    if echo "$@" | grep -q -E '\<repl\>.* :port +[0-9]+'; then
+        repl_port=$(echo "$@" | sed -E 's/.*:port +([0-9]+).*/\1/')
+        task_options="$task_options -p $repl_port:$repl_port"
     fi
 
     docker-compose \
