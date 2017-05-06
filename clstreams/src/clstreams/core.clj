@@ -6,26 +6,39 @@
             [clstreams.pipelines]))
 
 (defn run-system
-  [system]
-  (let [system-state (atom system)
-        stop? (promise)]
+  [system-state-var]
+  (let [next-step (promise)
+        orig-handlers
+        (->
+         {}
+         (into (for [sgn [:term :int]]
+                 [sgn
+                  (signal/with-handler sgn
+                    (log/debugf "Received SIG%s" (-> sgn name .toUpperCase))
+                    (deliver next-step :end))]))
+         (into (for [sgn [:hup]]
+                 [sgn
+                  (signal/with-handler sgn
+                    (log/debugf "Received SIG%s" (-> sgn name .toUpperCase))
+                    (deliver next-step :restart))])))]
 
-    (signal/with-handler :int
-      (log/info "Received SIGINT")
-      (deliver stop? true))
+    (log/info "Starting topology")
+    (alter-var-root system-state-var component/start)
 
-    (swap! system-state component/start)
-    (log/info "Topology initialized successfully")
+    (let [ns @next-step]
 
-    @stop?
+      (doseq [[sgn orig-handler] orig-handlers]
+        (sun.misc.Signal/handle (signal/->signal :int) orig-handler))
 
-    (log/info "Stopping topology")
-    (swap! system-state component/stop)
-    (log/info "Topology stopped")
-    (System/exit 0)))
+      (log/info "Stopping topology")
+      (alter-var-root system-state-var component/stop)
+
+      (case ns
+        :end (System/exit 0)
+        :restart (recur system-state-var)))))
 
 
 (defn -main
   [func-name]
-  (let [system (eval (symbol func-name))]
-    (run-system system)))
+  (def system-state (eval (symbol func-name)))
+  (run-system #'system-state))
