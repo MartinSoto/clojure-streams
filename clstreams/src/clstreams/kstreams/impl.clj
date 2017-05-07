@@ -3,12 +3,12 @@
   (:require [clojure.reflect]))
 
 
-(defmacro java-function
-  [iface-symbol impl-fn-expr]
-  (let [iface-refl (clojure.reflect/reflect (eval iface-symbol))
+(defn java-function
+  [iface impl-fn-expr]
+  (let [iface-refl (clojure.reflect/reflect iface)
         method-refl (first (:members iface-refl))
         param-syms (map (fn [_] (gensym "p")) (:parameter-types method-refl))]
-    `(reify ~iface-symbol
+    `(reify ~(-> iface .getName symbol)
        (~(:name method-refl) [_# ~@param-syms]
         (~impl-fn-expr ~@param-syms)))))
 
@@ -65,23 +65,23 @@
 
 (def function-type-param-wrappers
   {'org.apache.kafka.streams.kstream.Aggregator
-   (fn [proc-expr] `(java-function org.apache.kafka.streams.kstream.Aggregator ~proc-expr))
+   (fn [proc-expr] (java-function org.apache.kafka.streams.kstream.Aggregator proc-expr))
    'org.apache.kafka.streams.kstream.ForeachAction
-   (fn [proc-expr] `(java-function org.apache.kafka.streams.kstream.ForeachAction ~proc-expr))
+   (fn [proc-expr] (java-function org.apache.kafka.streams.kstream.ForeachAction proc-expr))
    'org.apache.kafka.streams.kstream.Initializer
-   (fn [proc-expr] `(java-function org.apache.kafka.streams.kstream.Initializer ~proc-expr))
+   (fn [proc-expr] (java-function org.apache.kafka.streams.kstream.Initializer proc-expr))
    'org.apache.kafka.streams.kstream.KeyValueMapper
-   (fn [proc-expr] `(java-function org.apache.kafka.streams.kstream.KeyValueMapper ~proc-expr))
+   (fn [proc-expr] (java-function org.apache.kafka.streams.kstream.KeyValueMapper proc-expr))
    'org.apache.kafka.streams.kstream.Merger
-   (fn [proc-expr] `(java-function org.apache.kafka.streams.kstream.Merger ~proc-expr))
+   (fn [proc-expr] (java-function org.apache.kafka.streams.kstream.Merger proc-expr))
    'org.apache.kafka.streams.kstream.Predicate
-   (fn [proc-expr] `(java-function org.apache.kafka.streams.kstream.Predicate ~proc-expr))
+   (fn [proc-expr] (java-function org.apache.kafka.streams.kstream.Predicate proc-expr))
    'org.apache.kafka.streams.kstream.Reducer
-   (fn [proc-expr] `(java-function org.apache.kafka.streams.kstream.Reducer ~proc-expr))
+   (fn [proc-expr] (java-function org.apache.kafka.streams.kstream.Reducer proc-expr))
    'org.apache.kafka.streams.kstream.ValueJoiner
-   (fn [proc-expr] `(java-function org.apache.kafka.streams.kstream.ValueJoiner ~proc-expr))
+   (fn [proc-expr] (java-function org.apache.kafka.streams.kstream.ValueJoiner proc-expr))
    'org.apache.kafka.streams.kstream.ValueMapper
-   (fn [proc-expr] `(java-function org.apache.kafka.streams.kstream.ValueMapper ~proc-expr))})
+   (fn [proc-expr] (java-function org.apache.kafka.streams.kstream.ValueMapper proc-expr))})
 
 (defn dispatch-value-from-param [param-type-sym]
   (cond
