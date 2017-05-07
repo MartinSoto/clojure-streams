@@ -62,9 +62,6 @@
   (mapcat (fn [[method-name method-data]]
             (multimethod-exprs method-name method-data param-wrapper-for-type)) mm-data))
 
-(defmacro define-multimethods [mm-def-list]
-  (cons 'do (eval mm-def-list)))
-
 
 (def function-type-param-wrappers
   {'org.apache.kafka.streams.kstream.Aggregator
@@ -116,3 +113,6 @@
 
 (def kstream-multimethod-defs (exprs-from-multimethods-data kstreams-mm-data
                                                             param-wrapper-for-type))
+
+(defmacro define-multimethods []
+  (cons 'do kstream-multimethod-defs))

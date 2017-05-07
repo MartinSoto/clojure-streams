@@ -1,6 +1,6 @@
 (ns clstreams.kstreams
   (:refer-clojure :only [])
-  (:require [clstreams.kstreams.impl :refer [kstream-multimethod-defs define-multimethods]]))
+  (:require [clstreams.kstreams.impl :refer [define-multimethods]]))
 
-(define-multimethods kstream-multimethod-defs)
+(define-multimethods)
 
