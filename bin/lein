@@ -9,6 +9,9 @@ start_container() {
     compose_project=${PROJECT_DIR:-.}/docker-compose.yml
 
     task_options=""
+    if [ -n "$DOCKER_RUN_OPTS" ]; then
+        task_options="$task_options $DOCKER_RUN_OPTS"
+    fi
     if echo "$@" | grep -q -E '\<repl\>.* :port +[0-9]+'; then
         repl_port=$(echo "$@" | sed -E 's/.*:port +([0-9]+).*/\1/')
         task_options="$task_options -p $repl_port:$repl_port"
