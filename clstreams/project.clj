@@ -14,7 +14,8 @@
                  [org.slf4j/slf4j-jdk14 "1.7.25"]
 
                  [com.stuartsierra/component "0.3.2"]
-                 [spootnik/signal "0.2.1"]]
+                 [spootnik/signal "0.2.1"]
+                 [org.immutant/web "2.1.6"]]
 
   :main ^:skip-aot clstreams.core
   :target-path "target/%s"
