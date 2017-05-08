@@ -20,7 +20,7 @@
   (->> record-producing-fn repeatedly (take-while identity) key-value-map))
 
 
-(def default-props
+(defn default-props []
   (StreamsConfig.
    {StreamsConfig/APPLICATION_ID_CONFIG "streams-wordcount"
     StreamsConfig/BOOTSTRAP_SERVERS_CONFIG "kafka:9092"
@@ -38,7 +38,7 @@
   (testing "Garbage in, garbage out..."
     (let [builder (KStreamBuilder.)
           _ (build-copy builder)
-          driver (ProcessorTopologyTestDriver. default-props builder
+          driver (ProcessorTopologyTestDriver. (default-props) builder
                                                (into-array String ["Counts"]))]
       (.process driver "streams-file-input" "" "all streams lead to kafka"
                 string-serializer string-serializer)
@@ -61,7 +61,7 @@
   (testing "Complete table written to output topic"
     (let [builder (KStreamBuilder.)
           _ (build-count-words builder)
-          driver (ProcessorTopologyTestDriver. default-props builder
+          driver (ProcessorTopologyTestDriver. (default-props) builder
                                                (into-array String ["Counts"]))]
       (.process driver "streams-file-input" "" "all streams lead to kafka"
                 string-serializer string-serializer)
