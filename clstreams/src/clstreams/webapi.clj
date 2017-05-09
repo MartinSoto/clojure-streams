@@ -1,11 +1,16 @@
 (ns clstreams.webapi
-  (:require [ring.util.response :refer (response)]
-            [ring.middleware.json :refer (wrap-json-body wrap-json-response)]
+  (:require [clstreams.webapi.component :refer [new-immutant]]
+            [ring.middleware.json :refer [wrap-json-body wrap-json-response]]
+            [ring.util.response :refer [response]]
+            [clstreams.kstreams :as ks])
+  (:import org.apache.kafka.streams.state.QueryableStoreTypes))
 
-            [clstreams.webapi.component :refer (new-immutant)]))
+(defn main-handler [{{kstreams :kstreams} :pipeline} request]
+  (let [store (.store kstreams "Counts" (QueryableStoreTypes/keyValueStore))]
+    (response (str (.get store "kafka")))))
 
 (defn make-app [component]
-  (-> (fn [request] (response (str (into {} component))))
+  (-> (partial main-handler component)
       wrap-json-body
       wrap-json-response))
 
