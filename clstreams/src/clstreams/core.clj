@@ -5,51 +5,55 @@
             [signal.handler :as signal]
             [clstreams.pipelines]))
 
-(defn trap-signals [action-promise]
-  (->
-   {}
-   (into (for [sgn [:term :int]]
-           [sgn
-            (signal/with-handler sgn
-              (log/debugf "Received SIG%s" (-> sgn name .toUpperCase))
-              (deliver action-promise :end))]))
-   (into (for [sgn [:hup]]
-           [sgn
-            (signal/with-handler sgn
-              (log/debugf "Received SIG%s" (-> sgn name .toUpperCase))
-              (deliver action-promise :restart))]))))
+(defrecord SignalManager [action-promise]
+  component/Lifecycle
 
-(defn untrap-signals [orig-handlers]
-  (doseq [[sgn orig-handler] orig-handlers]
-    (sun.misc.Signal/handle (signal/->signal :int) orig-handler)))
+  (start [component]
+    (assoc component :orig-handlers
+           (->
+            {}
+            (into (for [sgn [:term :int]]
+                    [sgn
+                     (signal/with-handler sgn
+                       (log/debugf "Received SIG%s" (-> sgn name .toUpperCase))
+                       (deliver action-promise :end))]))
+            (into (for [sgn [:hup]]
+                    [sgn
+                     (signal/with-handler sgn
+                       (log/debugf "Received SIG%s" (-> sgn name .toUpperCase))
+                       (deliver action-promise :restart))])))))
 
-(defmacro run-and-handle-signals
-  [start-expr stop-expr restart-expr]
-  `(let [next-step# (promise)
-         orig-handlers# (trap-signals next-step#)]
+  (stop [component]
+    (doseq [[sgn orig-handler] (:orig-handlers component)]
+      (sun.misc.Signal/handle (signal/->signal :int) orig-handler))))
 
-     ~start-expr
-
-     (let [ns# @next-step#]
-
-       (untrap-signals orig-handlers#)
-
-       ~stop-expr
-
-       (case ns#
-         :end (System/exit 0)
-         :restart ~restart-expr))))
+(defn new-signal-manager [subsystem action-promise]
+  (component/system-map
+   :subsystem subsystem
+   :signal-manager (component/using
+                    (map->SignalManager {:action-promise action-promise})
+                    [:subsystem])))
 
 
 (def system nil)
 
+(defn run-system
+  [state-var new-system-fn]
+  (let [next-step (promise)
+        system (new-system-fn next-step)]
+
+      (alter-var-root state-var (constantly system))
+      (alter-var-root state-var component/start)
+
+      (let [ns @next-step]
+        (alter-var-root state-var component/stop)
+        ns)))
+
 (defn -main
   [& _]
   (let [[func-name & args] *command-line-args*
-        system-init-fn (eval (symbol func-name))]
-    (alter-var-root #'system
-                    (constantly (apply system-init-fn args)))
-    (run-and-handle-signals
-     (alter-var-root #'system component/start)
-     (alter-var-root #'system component/stop)
-     (recur []))))
+        system-init-fn (eval (symbol func-name))
+        system (apply system-init-fn args)]
+    (case (run-system #'system (partial new-signal-manager system))
+      :end (System/exit 0)
+      :restart (recur []))))

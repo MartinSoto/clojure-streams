@@ -1,17 +1,15 @@
 (ns user
   (:gen-class)
-  (:require
-   [clojure.java.io :as io]
-   [clojure.pprint :refer (pprint)]
-   [clojure.repl :refer :all]
-   [clojure.string :as str]
-   [clojure.test :as test]
-   [clojure.tools.namespace.repl :refer (refresh refresh-all)]
+  (:require [clojure.java.io :as io]
+            [clojure.pprint :refer (pprint)]
+            [clojure.repl :refer :all]
+            [clojure.string :as str]
+            [clojure.test :as test]
 
-   [com.stuartsierra.component :as component]
-
-   [clstreams.core :refer (run-and-handle-signals)]
-   [clstreams.system :refer (count-words-system)]))
+            [clojure.tools.namespace.repl :refer [refresh]]
+            [clstreams.system :refer [count-words-system]]
+            [clstreams.core :refer [run-system new-signal-manager]]
+            [com.stuartsierra.component :as component]))
 
 (def system nil)
 
@@ -38,10 +36,8 @@
 (defn -main
   [& _]
   (let [[func-name & args] *command-line-args*
-        system-init-fn (eval (symbol func-name))]
-    (alter-var-root #'system
-                    (constantly (apply system-init-fn args)))
-    (run-and-handle-signals
-     (alter-var-root #'system component/start)
-     (alter-var-root #'system component/stop)
-     (refresh :after 'user/-main))))
+        system-init-fn (eval (symbol func-name))
+        system (apply system-init-fn args)]
+    (case (run-system #'system (partial new-signal-manager system))
+      :end (System/exit 0)
+      :restart (refresh :after 'user/-main))))
