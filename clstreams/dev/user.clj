@@ -11,13 +11,13 @@
    [com.stuartsierra.component :as component]
 
    [clstreams.core :refer (run-and-handle-signals)]
-   [clstreams.pipelines :refer (count-words)]))
+   [clstreams.system :refer (count-words-system)]))
 
 (def system nil)
 
 (defn init []
   (alter-var-root #'system
-                  (constantly (count-words))))
+                  (constantly (count-words-system))))
 
 (defn start []
   (alter-var-root #'system component/start))
