@@ -1,8 +1,7 @@
 (ns clstreams.webapi.component
   (:require [aleph.http :as aleph]
             [clojure.tools.logging :as log]
-            [com.stuartsierra.component :as component]
-            [immutant.web :as web]))
+            [com.stuartsierra.component :as component]))
 
 (defrecord AlephWebServer [app-factory config server]
   component/Lifecycle
@@ -22,7 +21,7 @@
   (map->AlephWebServer {:app-factory app-factory :config config}))
 
 
-(defrecord ImmutantWebServer [app-factory config server]
+(comment defrecord ImmutantWebServer [app-factory config server]
   component/Lifecycle
 
   (start [component]
@@ -36,5 +35,5 @@
     (web/stop server)
     (assoc component :server nil)))
 
-(defn new-immutant [app-factory config]
+(comment defn new-immutant [app-factory config]
   (map->ImmutantWebServer {:app-factory app-factory :config config}))

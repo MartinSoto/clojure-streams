@@ -12,7 +12,6 @@
                  [org.clojure/clojure "1.8.0"]
                  [org.clojure/core.async "0.3.442"]
                  [org.clojure/tools.logging "0.3.1"]
-                 [org.immutant/web "2.1.6"]
                  [org.slf4j/slf4j-jdk14 "1.7.25"]
                  [ring/ring-json "0.4.0"]
                  [spootnik/signal "0.2.1"]
