@@ -10,11 +10,11 @@
     (log/info "Starting web server")
     (let [handler (app-factory component)
           server (aleph/start-server handler config)]
-      (assoc component :stop-server server)))
+      (assoc component :server server)))
 
   (stop [component]
     (log/info "Stopping web server")
-    (:stop-server component)
+    (.close (:server component))
     (assoc component :server nil)))
 
 (defn new-aleph [app-factory config]
