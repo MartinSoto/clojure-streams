@@ -24,13 +24,13 @@
   (alter-var-root #'system
                   (fn [s] (when s (component/stop s)))))
 
-(defn go []
-  (init)
-  (start))
-
 (defn reset []
   (stop)
-  (refresh :after 'user/go))
+  (refresh :after 'user/after-reset))
+
+(defn after-reset []
+  (init)
+  (start))
 
 
 (defn -main
