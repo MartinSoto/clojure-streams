@@ -16,7 +16,8 @@
                  [com.stuartsierra/component "0.3.2"]
                  [spootnik/signal "0.2.1"]
                  [org.immutant/web "2.1.6"]
-                 [ring/ring-json "0.4.0"]]
+                 [ring/ring-json "0.4.0"]
+                 [org.clojure/core.async "0.3.442"]]
 
   :main ^:skip-aot clstreams.core
   :target-path "target/%s"

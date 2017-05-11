@@ -9,7 +9,10 @@
             [clojure.tools.namespace.repl :refer [refresh]]
             [clstreams.system :refer [count-words-system]]
             [clstreams.core :refer [run-system new-signal-manager]]
-            [com.stuartsierra.component :as component]))
+            [com.stuartsierra.component :as component]
+            [clojure.core.async :as a
+             :refer [>! <! >!! <!! go chan buffer close! thread
+                     alts! alts!! timeout]]))
 
 (def system nil)
 
