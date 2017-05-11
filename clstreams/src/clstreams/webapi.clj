@@ -1,5 +1,5 @@
 (ns clstreams.webapi
-  (:require [clstreams.webapi.component :refer [new-immutant]]
+  (:require [clstreams.webapi.component :refer [new-aleph]]
             [ring.middleware.json :refer [wrap-json-body wrap-json-response]]
             [ring.util.response :refer [response]]
             [clstreams.kstreams :as ks])
@@ -16,4 +16,4 @@
 
 
 (defn web-test []
-  (new-immutant make-app {:host "0.0.0.0" :port 8080}))
+  (new-aleph make-app {:host "0.0.0.0" :port 8080}))
