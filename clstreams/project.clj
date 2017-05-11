@@ -15,7 +15,8 @@
                  [org.slf4j/slf4j-jdk14 "1.7.25"]
                  [ring/ring-json "0.4.0"]
                  [spootnik/signal "0.2.1"]
-                 [aleph "0.4.3"]]
+                 [aleph "0.4.3"]
+                 [bidi "2.1.0"]]
 
   :main ^:skip-aot clstreams.core
   :target-path "target/%s"

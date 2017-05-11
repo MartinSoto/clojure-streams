@@ -1,14 +1,19 @@
 (ns clstreams.webapi
-  (:require [clstreams.webapi.component :refer [new-aleph]]
+  (:require [bidi.ring :as bidi]
+            [clstreams.webapi.component :refer [new-aleph]]
             [ring.middleware.json :refer [wrap-json-body wrap-json-response]]
-            [ring.util.response :refer [response]]
-            [clstreams.kstreams :as ks])
+            [ring.util.response :refer [response]])
   (:import org.apache.kafka.streams.state.QueryableStoreTypes))
 
-(defn make-main-handler [{{kstreams :kstreams} :pipeline}]
-  (fn [request]
+(defn make-word-count-handler [{{kstreams :kstreams} :pipeline}]
+  (fn [{:keys [route-params]}]
     (let [store (.store kstreams "Counts" (QueryableStoreTypes/keyValueStore))]
-      (response (str (.get store "kafka"))))))
+      (->> (:word route-params) (.get store) str response))
+    ))
+
+(defn make-main-handler [component]
+  (bidi/make-handler
+   [["/word-count/" :word] (make-word-count-handler component)]))
 
 (defn make-app [component]
   (-> (make-main-handler component)
