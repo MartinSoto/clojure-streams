@@ -27,33 +27,39 @@
     (doseq [[sgn orig-handler] (:orig-handlers component)]
       (sun.misc.Signal/handle (signal/->signal :int) orig-handler))))
 
-(defn new-signal-manager [subsystem action-promise]
+(defn new-signal-manager []
+  (map->SignalManager {}))
+
+
+(defn new-control-system []
   (component/system-map
-   :subsystem subsystem
+   :action-promise (promise)
    :signal-manager (component/using
-                    (map->SignalManager {:action-promise action-promise})
-                    [:subsystem])))
+                    (new-signal-manager)
+                    [:action-promise])))
 
 
-(def system nil)
+(def system-state nil)
 
 (defn run-system
-  [state-var new-system-fn]
-  (let [next-step (promise)
-        system (new-system-fn next-step)]
+  [state-var system control-system]
 
-      (alter-var-root state-var (constantly system))
-      (alter-var-root state-var component/start)
+  (alter-var-root state-var (constantly system))
+  (alter-var-root state-var component/start)
 
-      (let [ns @next-step]
-        (alter-var-root state-var component/stop)
-        ns)))
+  (let [started-control (component/start control-system)
+        next-step @(:action-promise control-system)]
+    (component/stop control-system)
+
+    (alter-var-root state-var component/stop)
+    next-step))
 
 (defn -main
   [& _]
   (let [[func-name & args] *command-line-args*
         system-init-fn (eval (symbol func-name))
-        system (apply system-init-fn args)]
-    (case (run-system #'system (partial new-signal-manager system))
+        system (apply system-init-fn args)
+        control-system (new-control-system)]
+    (case (run-system #'system-state system control-system)
       :end (System/exit 0)
       :restart (recur []))))
