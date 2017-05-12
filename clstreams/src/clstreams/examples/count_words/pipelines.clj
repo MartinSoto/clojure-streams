@@ -1,4 +1,4 @@
-(ns clstreams.pipelines
+(ns clstreams.examples.count-words.pipelines
   (:require [clojure.string :as str]
             [clstreams.kstreams :as ks]
             [clstreams.kstreams.component :refer [new-topology]])

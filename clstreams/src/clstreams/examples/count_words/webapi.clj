@@ -1,4 +1,4 @@
-(ns clstreams.webapi
+(ns clstreams.examples.count-words.webapi
   (:require [bidi.ring :as bidi]
             [clojure.core.async :refer [<! go timeout]]
             [clstreams.webapi.component :refer [new-aleph]]

@@ -2,8 +2,7 @@
   (:gen-class)
   (:require [clojure.tools.logging :as log]
             [com.stuartsierra.component :as component]
-            [signal.handler :as signal]
-            [clstreams.pipelines]))
+            [signal.handler :as signal]))
 
 (defrecord SignalManager [action-promise]
   component/Lifecycle

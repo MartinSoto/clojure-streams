@@ -7,12 +7,13 @@
             [clojure.test :as test]
 
             [clojure.tools.namespace.repl :refer [refresh]]
-            [clstreams.system :refer [count-words-system]]
             [clstreams.core :refer [run-system new-control-system]]
             [com.stuartsierra.component :as component]
             [clojure.core.async :as a
              :refer [>! <! >!! <!! go chan buffer close! thread
-                     alts! alts!! timeout]]))
+                     alts! alts!! timeout]]
+
+            [clstreams.examples.count-words.system :refer [count-words-system]]))
 
 (def system-state nil)
 
