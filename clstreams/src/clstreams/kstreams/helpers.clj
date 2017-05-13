@@ -1,8 +1,8 @@
 (ns clstreams.kstreams.helpers
-  (:require [clstreams.kstreams :as ks]
+  (:require [clojure.pprint :refer [pprint]]
+            [clstreams.kstreams :as ks]
             [clstreams.kstreams.component :refer [new-topology]])
-  (:import org.apache.kafka.clients.consumer.ConsumerConfig
-           [org.apache.kafka.clients.producer KafkaProducer ProducerRecord]
+  (:import [org.apache.kafka.clients.producer KafkaProducer ProducerRecord]
            org.apache.kafka.common.serialization.Serdes
            org.apache.kafka.streams.kstream.KStreamBuilder
            org.apache.kafka.streams.StreamsConfig))
@@ -33,15 +33,24 @@
    StreamsConfig/VALUE_SERDE_CLASS_CONFIG (-> (Serdes/String) .getClass .getName)
    StreamsConfig/CACHE_MAX_BYTES_BUFFERING_CONFIG 0})
 
-(def print-word-counts-props
-  (assoc default-pipeline-props StreamsConfig/APPLICATION_ID_CONFIG "streams-printwordcounts"))
+(defn uuid [] (str (java.util.UUID/randomUUID)))
 
-(defn build-print-word-counts []
-  (let [builder (KStreamBuilder.)]
-    (-> builder
-        (ks/stream (Serdes/String) (Serdes/Long) ["streams-wordcount-output"])
-        (ks/foreach println))
-    builder))
+(defn pprint-topic-message [topic-name key value]
+  (let [formatted-key (with-out-str (pprint key))
+        formatted-value (with-out-str (pprint value))]
+    (println (format "[%s] %s : %s" topic-name key value))))
 
-(defn print-word-counts []
-  (new-topology print-word-counts-props (build-print-word-counts)))
+(defn new-print-topic
+  ([topic-name]
+   (new-print-topic topic-name {}))
+  ([topic-name options]
+   (let [key-serde (:key-serde options (Serdes/String))
+         value-serde (:value-serde options (Serdes/String))
+         props (assoc default-pipeline-props
+                      StreamsConfig/APPLICATION_ID_CONFIG
+                      (str "print-topic-" (uuid)))
+         builder (KStreamBuilder.)]
+     (-> builder
+         (ks/stream key-serde value-serde [topic-name])
+         (ks/foreach (partial pprint-topic-message topic-name)))
+     (new-topology props builder))))
