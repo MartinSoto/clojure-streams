@@ -20,16 +20,6 @@
     (.put "key.serializer" "org.apache.kafka.common.serialization.StringSerializer")
     (.put "value.serializer" "org.apache.kafka.common.serialization.StringSerializer")))
 
-(defn produce-numbered-messages
-  [& args]
-  (let [topic "my-topic"
-        producer (KafkaProducer. client-props)]
-    (doseq
-        [n (range 100)]
-      (.send producer
-             (ProducerRecord. topic (format "msg%04d" n) (format "This is message %d" n))))
-    (.close producer)))
-
 (defn produce-words
   [& lines]
   (let [topic "streams-file-input"
