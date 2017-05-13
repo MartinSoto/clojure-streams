@@ -2,14 +2,14 @@
   (:require [clojure.string :as str]
             [clstreams.kstreams :as ks]
             [clstreams.kstreams.component :refer [new-topology]]
-            [clstreams.kstreams.helpers :refer [default-pipeline-props]])
+            [clstreams.kstreams.helpers :refer [default-topology-config]])
   (:import org.apache.kafka.common.serialization.Serdes
            org.apache.kafka.streams.KeyValue
            org.apache.kafka.streams.kstream.KStreamBuilder
            org.apache.kafka.streams.StreamsConfig))
 
 (def count-words-props
-  (assoc default-pipeline-props StreamsConfig/APPLICATION_ID_CONFIG "streams-wordcount"))
+  (assoc default-topology-config StreamsConfig/APPLICATION_ID_CONFIG "streams-wordcount"))
 
 (defn build-count-words []
   (let [builder (KStreamBuilder.)]

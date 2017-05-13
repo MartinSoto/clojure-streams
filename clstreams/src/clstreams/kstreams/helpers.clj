@@ -28,7 +28,7 @@
      (new-producer topic-name config))))
 
 
-(def default-pipeline-props
+(def default-topology-config
   {StreamsConfig/BOOTSTRAP_SERVERS_CONFIG "kafka:9092"
    StreamsConfig/KEY_SERDE_CLASS_CONFIG (-> (Serdes/String) .getClass .getName)
    StreamsConfig/VALUE_SERDE_CLASS_CONFIG (-> (Serdes/String) .getClass .getName)
@@ -47,7 +47,7 @@
   ([topic-name options]
    (let [key-serde (:key-serde options (Serdes/String))
          value-serde (:value-serde options (Serdes/String))
-         props (assoc default-pipeline-props
+         props (assoc default-topology-config
                       StreamsConfig/APPLICATION_ID_CONFIG
                       (str "print-topic-" (uuid)))
          builder (KStreamBuilder.)]
