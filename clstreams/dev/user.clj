@@ -13,19 +13,20 @@
              :refer [>! <! >!! <!! go chan buffer close! thread
                      alts! alts!! timeout]]
 
-            [clstreams.examples.count-words.system :refer [count-words-system]]))
+            [clstreams.examples.count-words.system :refer
+             [count-words-system produce-words]]))
 
-(def system-state nil)
+(def system nil)
 
 (defn init []
-  (alter-var-root system-state
+  (alter-var-root #'system
                   (constantly (count-words-system))))
 
 (defn start []
-  (alter-var-root system-state component/start))
+  (alter-var-root #'system component/start))
 
 (defn stop []
-  (alter-var-root system-state
+  (alter-var-root #'system
                   (fn [s] (when s (component/stop s)))))
 
 (defn reset []
@@ -43,6 +44,6 @@
         system-init-fn (eval (symbol func-name))
         system (apply system-init-fn args)
         control-system (new-control-system)]
-    (case (run-system #'system-state system control-system)
+    (case (run-system #'system system control-system)
       :end (System/exit 0)
       :restart (refresh :after 'user/-main))))
