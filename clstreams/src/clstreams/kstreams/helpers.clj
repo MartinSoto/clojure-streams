@@ -31,8 +31,7 @@
   {StreamsConfig/BOOTSTRAP_SERVERS_CONFIG "kafka:9092"
    StreamsConfig/KEY_SERDE_CLASS_CONFIG (-> (Serdes/String) .getClass .getName)
    StreamsConfig/VALUE_SERDE_CLASS_CONFIG (-> (Serdes/String) .getClass .getName)
-   StreamsConfig/CACHE_MAX_BYTES_BUFFERING_CONFIG 0
-   ConsumerConfig/AUTO_OFFSET_RESET_CONFIG "earliest"})
+   StreamsConfig/CACHE_MAX_BYTES_BUFFERING_CONFIG 0})
 
 (def print-word-counts-props
   (assoc default-pipeline-props StreamsConfig/APPLICATION_ID_CONFIG "streams-printwordcounts"))
