@@ -1,30 +1,31 @@
 (ns clstreams.kstreams.helpers
   (:require [clojure.pprint :refer [pprint]]
             [clstreams.kstreams :as ks]
-            [clstreams.kstreams.component :refer [new-topology]])
-  (:import [org.apache.kafka.clients.producer KafkaProducer ProducerRecord]
-           org.apache.kafka.common.serialization.Serdes
+            [clstreams.kstreams.component :refer [new-producer new-topology]])
+  (:import org.apache.kafka.common.serialization.Serdes
            org.apache.kafka.streams.kstream.KStreamBuilder
            org.apache.kafka.streams.StreamsConfig))
 
-(def client-props
-  (doto (java.util.Properties.)
-    (.put "bootstrap.servers" "kafka:9092")
-    (.put "acks" "all")
-    (.put "retries" (int 0))
-    (.put "batch.size" (int 16384))
-    (.put "linger.ms" (int 1))
-    (.put "buffer.memory" (int 33554432))
-    (.put "key.serializer" "org.apache.kafka.common.serialization.StringSerializer")
-    (.put "value.serializer" "org.apache.kafka.common.serialization.StringSerializer")))
+(def default-producer-config
+  {"bootstrap.servers" "kafka:9092",
+   "acks" "all",
+   "retries" (int 0),
+   "batch.size" (int 16384),
+   "linger.ms" (int 1),
+   "buffer.memory" (int (* 4 1024 1024)),
+   "key.serializer" "org.apache.kafka.common.serialization.StringSerializer",
+   "value.serializer" "org.apache.kafka.common.serialization.StringSerializer",})
 
-(defn produce-words
-  [& lines]
-  (let [topic "streams-file-input"
-        producer (KafkaProducer. client-props)]
-    (doseq [line lines]
-      (.send producer (ProducerRecord. topic "" line)))
-    (.close producer)))
+(defn new-manual-producer
+  ([topic-name]
+   (new-manual-producer topic-name {}))
+  ([topic-name options]
+   (let [key-serde (:key-serde options (Serdes/String))
+         value-serde (:value-serde options (Serdes/String))
+         config (assoc default-producer-config
+                       "key.serializer" (-> key-serde .serializer .getClass .getName)
+                       "value.serializer" (-> value-serde .serializer .getClass .getName))]
+     (new-producer topic-name config))))
 
 
 (def default-pipeline-props
