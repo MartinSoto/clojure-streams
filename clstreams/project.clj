@@ -12,7 +12,7 @@
                  [org.clojure/clojure "1.8.0"]
                  [org.clojure/core.async "0.3.442"]
                  [org.clojure/tools.logging "0.3.1"]
-                 [org.slf4j/slf4j-jdk14 "1.7.25"]
+                 [ch.qos.logback/logback-classic "1.2.3"]
                  [ring/ring-json "0.4.0"]
                  [spootnik/signal "0.2.1"]
                  [aleph "0.4.3"]
