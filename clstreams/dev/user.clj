@@ -18,27 +18,32 @@
 
 (def system nil)
 
-(defn init []
+(defn init-system []
   (alter-var-root #'system
-                  (constantly (count-words-system)))
+                  (constantly (count-words-system))))
+
+(defn start-system []
+  (alter-var-root #'system component/start))
+
+(defn stop-system []
+  (alter-var-root #'system
+                  (fn [s] (when s (component/stop s)))))
+
+
+(defn up []
+  (when-not system
+    (init-system))
+  (start-system)
   nil)
 
-(defn start []
-  (alter-var-root #'system component/start)
-  nil)
-
-(defn stop []
-  (alter-var-root #'system
-                  (fn [s] (when s (component/stop s))))
+(defn down []
+  (when system
+    (stop-system))
   nil)
 
 (defn reset []
-  (stop)
-  (refresh :after 'user/after-reset))
-
-(defn after-reset []
-  (init)
-  (start))
+  (down)
+  (refresh :after 'user/up))
 
 
 (defn -main
