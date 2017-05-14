@@ -30,9 +30,9 @@
 (defn new-producer [topic-name config]
   (map->Producer {:config config :topic-name topic-name}))
 
-(defn producer-send! [{:keys [producer topic-name]} & msgs]
-  (doseq [[key value] msgs]
-    (.send producer (ProducerRecord. topic-name key value))))
+(defn producer-send! [{:keys [producer topic-name]} msg & msgs]
+  (doseq [[key value] (cons msg msgs)]
+    @(.send producer (ProducerRecord. topic-name key value))))
 
 
 (defrecord Topology [config builder kstreams]
