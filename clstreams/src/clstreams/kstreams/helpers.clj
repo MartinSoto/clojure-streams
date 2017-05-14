@@ -1,5 +1,6 @@
 (ns clstreams.kstreams.helpers
-  (:require [clojure.pprint :refer [pprint]]
+  (:require clansi
+            [clojure.pprint :refer [pprint]]
             [clstreams.kstreams :as ks]
             [clstreams.kstreams.component :refer [new-producer new-topology]])
   (:import org.apache.kafka.common.serialization.Serdes
@@ -36,10 +37,12 @@
 
 (defn uuid [] (str (java.util.UUID/randomUUID)))
 
-(defn pprint-topic-message [topic-name key value]
+(defn- pprint-topic-message [topic-name color-settings key value]
   (let [formatted-key (with-out-str (pprint key))
         formatted-value (with-out-str (pprint value))]
-    (println (format "[%s] %s : %s" topic-name key value))))
+    (println (format "%s %s : %s"
+                     (apply clansi/style (format "[%s]" topic-name) color-settings)
+                     key value))))
 
 (defn new-print-topic
   ([topic-name]
@@ -47,11 +50,13 @@
   ([topic-name options]
    (let [key-serde (:key-serde options (Serdes/String))
          value-serde (:value-serde options (Serdes/String))
+         color-settings (:color options [])
+
          props (assoc default-topology-config
                       StreamsConfig/APPLICATION_ID_CONFIG
                       (str "print-topic-" (uuid)))
          builder (KStreamBuilder.)]
      (-> builder
          (ks/stream key-serde value-serde [topic-name])
-         (ks/foreach (partial pprint-topic-message topic-name)))
+         (ks/foreach (partial pprint-topic-message topic-name color-settings)))
      (new-topology props builder))))

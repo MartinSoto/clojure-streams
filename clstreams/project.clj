@@ -16,7 +16,8 @@
                  [ring/ring-json "0.4.0"]
                  [spootnik/signal "0.2.1"]
                  [aleph "0.4.3"]
-                 [bidi "2.1.0"]]
+                 [bidi "2.1.0"]
+                 [clansi "1.0.0"]]
 
   :main ^:skip-aot clstreams.core
   :target-path "target/%s"

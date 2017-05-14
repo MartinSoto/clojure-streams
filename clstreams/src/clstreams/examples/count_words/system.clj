@@ -12,7 +12,8 @@
    :pipeline (pipelines/count-words)
    :printer (helpers/new-print-topic "streams-wordcount-output"
                                      {:key-serde (Serdes/String)
-                                      :value-serde (Serdes/Long)})
+                                      :value-serde (Serdes/Long)
+                                      :color [:black :bg-red]})
    :webapi (component/using
             (webapi/web-test)
             [:pipeline])))
