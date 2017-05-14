@@ -20,14 +20,17 @@
 
 (defn init []
   (alter-var-root #'system
-                  (constantly (count-words-system))))
+                  (constantly (count-words-system)))
+  nil)
 
 (defn start []
-  (alter-var-root #'system component/start))
+  (alter-var-root #'system component/start)
+  nil)
 
 (defn stop []
   (alter-var-root #'system
-                  (fn [s] (when s (component/stop s)))))
+                  (fn [s] (when s (component/stop s))))
+  nil)
 
 (defn reset []
   (stop)
