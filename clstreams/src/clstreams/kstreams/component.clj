@@ -42,13 +42,13 @@
     (if kstreams
       component
       (let [streams (KafkaStreams. builder (StreamsConfig. config))]
-        (log/info "Starting topology")
+        (log/info (get config StreamsConfig/APPLICATION_ID_CONFIG) "Starting topology")
         (.start streams)
         (assoc component :kstreams streams))))
 
   (stop [component]
     (if kstreams
-      (do (log/info "Stopping topology")
+      (do (log/info (get config StreamsConfig/APPLICATION_ID_CONFIG) "Stopping topology")
           (.close kstreams)
           (assoc component :kstreams nil))
       component)))
