@@ -35,8 +35,6 @@
    StreamsConfig/VALUE_SERDE_CLASS_CONFIG (-> (Serdes/String) .getClass .getName)
    StreamsConfig/CACHE_MAX_BYTES_BUFFERING_CONFIG 0})
 
-(defn uuid [] (str (java.util.UUID/randomUUID)))
-
 (defn- pprint-topic-message [topic-name color-settings key value]
   (let [formatted-key (with-out-str (pprint key))
         formatted-value (with-out-str (pprint value))]
@@ -54,7 +52,7 @@
 
          props (assoc default-topology-config
                       StreamsConfig/APPLICATION_ID_CONFIG
-                      (str "print-topic-" (uuid)))
+                      (str "print-topic-" topic-name "-" (gensym "")))
          builder (KStreamBuilder.)]
      (-> builder
          (ks/stream key-serde value-serde [topic-name])
