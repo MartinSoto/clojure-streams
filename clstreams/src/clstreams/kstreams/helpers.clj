@@ -52,7 +52,7 @@
 
          props (assoc default-topology-config
                       StreamsConfig/APPLICATION_ID_CONFIG
-                      (str "print-topic-" topic-name "-" (gensym "")))
+                      (str "print-topic-" topic-name))
          builder (KStreamBuilder.)]
      (-> builder
          (ks/stream key-serde value-serde [topic-name])
