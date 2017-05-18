@@ -1,32 +1,18 @@
 (ns clstreams.kstreams-test
-  (:require [clojure.test :refer :all]
-            [clojure.string :as str]
-            [clstreams.kstreams :as ks])
-  (:import [org.apache.kafka.clients.consumer ConsumerConfig]
-           [org.apache.kafka.common.serialization Serdes]
-           [org.apache.kafka.streams KafkaStreams KeyValue StreamsConfig]
-           [org.apache.kafka.streams.kstream KStreamBuilder]
-           [org.apache.kafka.test ProcessorTopologyTestDriver]))
-
-(def string-serializer (-> (Serdes/String) .serializer))
-(def string-deserializer (-> (Serdes/String) .deserializer))
-
-(def long-deserializer (-> (Serdes/Long) .deserializer))
-
-(defn key-value-map [key-value-objs]
-  (into {} (map #(vector (.key %) (.value %)) key-value-objs)))
-
-(defn collect-output [record-producing-fn]
-  (->> record-producing-fn repeatedly (take-while identity) key-value-map))
-
-
-(defn default-props []
-  (StreamsConfig.
-   {StreamsConfig/APPLICATION_ID_CONFIG "streams-wordcount"
-    StreamsConfig/BOOTSTRAP_SERVERS_CONFIG "kafka:9092"
-    StreamsConfig/KEY_SERDE_CLASS_CONFIG (-> (Serdes/String) .getClass .getName)
-    StreamsConfig/VALUE_SERDE_CLASS_CONFIG (-> (Serdes/String) .getClass .getName)
-    ConsumerConfig/AUTO_OFFSET_RESET_CONFIG "earliest"}))
+  (:require [clojure.string :as str]
+            [clojure.test :refer :all]
+            [clstreams.kstreams :as ks]
+            [clstreams.testutil.kstreams :refer
+             [collect-output
+              default-props
+              key-value-map
+              long-deserializer
+              string-deserializer
+              string-serializer]])
+  (:import org.apache.kafka.common.serialization.Serdes
+           org.apache.kafka.streams.KeyValue
+           org.apache.kafka.streams.kstream.KStreamBuilder
+           org.apache.kafka.test.ProcessorTopologyTestDriver))
 
 (defn build-copy
   [builder]
