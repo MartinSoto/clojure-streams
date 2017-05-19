@@ -14,7 +14,8 @@
                      alts! alts!! timeout]]
 
             [clstreams.examples.count-words.system :refer
-             [count-words-system produce-words]]))
+             [count-words-system produce-words]]
+            [clstreams.examples.game-credits.state]))
 
 (def system nil)
 
