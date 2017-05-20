@@ -25,7 +25,7 @@
       (is (not errors))))
 
   (testing "trying to use more credits than available results in error"
-    (let [{:keys [state errors]}
+    (let [{state :state {credits-error :credits} :errors}
           (update-credits has-10-credits-st use-15-credits-req)]
       (is (= state has-10-credits-st))
-      (is errors))))
+      (is (> (count credits-error) 0)))))

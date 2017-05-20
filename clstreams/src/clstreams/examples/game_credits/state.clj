@@ -10,4 +10,4 @@
     (if (> credits req-credits)
       {:state (assoc state :credits (- credits req-credits))}
       {:state state
-       :errors {}})))
+       :errors {:credits "Insufficient credits in account"}})))
