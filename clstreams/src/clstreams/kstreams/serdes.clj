@@ -1,8 +1,7 @@
 (ns clstreams.kstreams.serdes
   (:require [clojure.edn :refer [read-string]])
-  (:import [org.apache.kafka.common.serialization
-            Deserializer Serializer
-            StringDeserializer StringSerializer]))
+  (:import [org.apache.kafka.common.serialization Deserializer
+            Serde Serializer StringDeserializer StringSerializer]))
 
 (deftype EDNSerializer [str-serializer]
 
@@ -36,3 +35,19 @@
 
 (defn edn-deserializer []
   (->EDNDeserializer (StringDeserializer.)))
+
+
+(deftype EDNSerde [ser des]
+
+  Serde
+
+  (configure [this configs is-key] nil)
+
+  (serializer [this] ser)
+
+  (deserializer [this] des)
+
+  (close [this] nil))
+
+(defn edn-serde []
+  (->EDNSerde (edn-serializer) (edn-deserializer)))

@@ -1,6 +1,7 @@
 (ns clstreams.kstreams.serdes-test
-  (:require [clstreams.kstreams.serdes :as sut]
-            [clojure.test :refer :all]))
+  (:require [clojure.test :refer :all]
+            [clstreams.kstreams.serdes :as sut])
+  (:import [clstreams.kstreams.serdes EDNDeserializer EDNSerializer]))
 
 (deftest test-edn-serializer
   (testing "Default config works with basic types"
@@ -25,3 +26,10 @@
     (is (= (rtrip "abc") "abc") "Works with strings")
     (is (= (rtrip [1 "yeah" :no]) [1 "yeah" :no]) "Works with vectors")
     (is (= (rtrip {:a "one" :b 2}) {:a "one" :b 2})) "Works with maps"))
+
+(deftest test-edn-serde
+  (let [serde (sut/edn-serde)]
+    ; These check should work without =, but an apparent bug makes
+    ; them fail mysteriously.
+    (is (= (instance? EDNSerializer (.serializer serde)) true))
+    (is (= (instance? EDNDeserializer (.deserializer serde)) true))))
