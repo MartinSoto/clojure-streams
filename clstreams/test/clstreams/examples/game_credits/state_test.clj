@@ -12,6 +12,12 @@
                          :credits 15})
 
 (deftest state-update-test
+  (testing "can create account"
+    (let [{:keys [state errors]}
+          (update-credits nil {:type ::s/create-account-requested})]
+      (is (= (:credits state) 0))
+      (is (nil? errors))))
+
   (testing "can add credits to a state"
     (let [{:keys [state errors]}
           (update-credits has-10-credits-st add-5-credits-req)]
