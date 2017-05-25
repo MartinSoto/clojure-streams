@@ -1,37 +1,45 @@
 (ns clstreams.examples.game-credits.state-test
   (:require [clojure.test :refer :all]
-            [clstreams.examples.game-credits.state :as s :refer :all]))
+            [clstreams.examples.game-credits.state :as sut]))
 
-(def has-10-credits-st {:credits 10})
+(def has-10-credits-st {:balance 10})
 
-(def add-5-credits-req {:type ::s/add-credits-requested
+(def add-5-credits-req {:type ::sut/add-credits-requested
                         :credits 5})
-(def use-5-credits-req {:type ::s/use-credits-requested
+(def use-5-credits-req {:type ::sut/use-credits-requested
                         :credits 5})
-(def use-15-credits-req {:type ::s/use-credits-requested
+(def use-15-credits-req {:type ::sut/use-credits-requested
                          :credits 15})
 
 (deftest state-update-test
   (testing "can create account"
-    (let [{:keys [state errors]}
-          (update-credits nil {:type ::s/create-account-requested})]
-      (is (= (:credits state) 0))
+    (let [{:keys [type balance credits errors]}
+          (sut/update-credits nil {:type ::sut/create-account-requested})]
+      (is (= type ::sut/account-created))
+      (is (= balance 0))
+      (is (nil? credits))
       (is (nil? errors))))
 
-  (testing "can add credits to a state"
-    (let [{:keys [state errors]}
-          (update-credits has-10-credits-st add-5-credits-req)]
-      (is (= (:credits state) 15))
-      (is (not errors))))
+  (testing "can add credits to the balance"
+    (let [{:keys [type balance credits errors]}
+          (sut/update-credits has-10-credits-st add-5-credits-req)]
+      (is (= type ::sut/credits-added))
+      (is (= balance 15))
+      (is (= credits) 5)
+      (is (nil? errors))))
 
   (testing "can use credits if they're available"
-    (let [{:keys [state errors]}
-          (update-credits has-10-credits-st use-5-credits-req)]
-      (is (= (:credits state) 5))
-      (is (not errors))))
+    (let [{:keys [type balance credits errors]}
+          (sut/update-credits has-10-credits-st use-5-credits-req)]
+      (is (= type ::sut/credits-used))
+      (is (= balance 5))
+      (is (= credits) 5)
+      (is (nil? errors))))
 
   (testing "trying to use more credits than available results in error"
-    (let [{state :state {credits-error :credits} :errors}
-          (update-credits has-10-credits-st use-15-credits-req)]
-      (is (= state has-10-credits-st))
-      (is (> (count credits-error) 0)))))
+    (let [{:keys [type balance credits errors]}
+          (sut/update-credits has-10-credits-st use-15-credits-req)]
+      (is (= type ::sut/insufficient-credits-error))
+      (is (nil? balance))
+      (is (nil? credits))
+      (is (some? errors)))))

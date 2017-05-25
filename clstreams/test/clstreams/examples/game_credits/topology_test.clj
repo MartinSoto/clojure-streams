@@ -18,9 +18,9 @@
 (deftest test-game-credits-topology
   (let [driver (ProcessorTopologyTestDriver. (StreamsConfig. sut/game-credits-props)
                                              (sut/game-credit-builder)
-                                             (into-array String ["states"]))
+                                             (into-array String ["game-credits-states"]))
 
-        states (.getStateStore driver "states")
+        states (.getKeyValueStore driver "game-credits-states")
 
         str-ser (-> (Serdes/String) .serializer)
         str-des (-> (Serdes/String) .deserializer)
@@ -29,7 +29,7 @@
 
         process (fn [k v] (.process driver "game-credits-requests" k v str-ser edn-ser))
         read-output (fn [] (prod-record->map
-                            (.readOutput driver "game-credits-results" str-des edn-des)))
+                            (.readOutput driver "game-credits-states-changelog" str-des edn-des)))
 
         account-key "gamer1"]
 
@@ -37,12 +37,11 @@
       (is (nil? (.get states account-key)))
 
       (process account-key {:type ::st/create-account-requested})
-      (let [{key :key {type :type credits :credits errors :errors} :value} (read-output)]
-        (is (= key account-key))
-        (is (= type ::st/account-created))
-        (is (nil? credits))
-        (is (nil? errors)))
+      (let [{:keys [type balance credits errors] :as state} (.get states account-key)]
+        (is (some? state))
 
-      (let [{credits :credits} (.get states account-key)]
-        (is (= credits 0))))))
+        (is (= type ::st/account-created))
+        (is (= balance 0))
+        (is (nil? credits))
+        (is (nil? errors))))))
 

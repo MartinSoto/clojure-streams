@@ -1,16 +1,21 @@
 (ns clstreams.examples.game-credits.state)
 
 (defn update-credits
-  [{credits :credits :as state} {type :type req-credits :credits}]
+  [{balance :balance :as state} {type :type credits :credits}]
   (case type
     ::create-account-requested
-    {:state {:credits 0}}
+    {:type ::account-created
+     :balance 0}
 
     ::add-credits-requested
-    {:state (assoc state :credits (+ credits req-credits))}
+    {:type ::credits-added
+     :credits credits
+     :balance (+ balance credits)}
 
     ::use-credits-requested
-    (if (> credits req-credits)
-      {:state (assoc state :credits (- credits req-credits))}
-      {:state state
+    (if (> balance credits)
+      {:type ::credits-used
+       :credits credits
+       :balance (- balance credits)}
+      {:type ::insufficient-credits-error
        :errors {:credits "Insufficient credits in account"}})))
