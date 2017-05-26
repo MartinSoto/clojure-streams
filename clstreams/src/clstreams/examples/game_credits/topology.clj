@@ -47,6 +47,7 @@
                          (.withKeys (Serdes/String))
                          (.withValues (serdes/edn-serde))
                          .persistent
+                         (.enableLogging {})
                          .build)]
     (-> builder
         (.addStateStore states-store (into-array String []))
