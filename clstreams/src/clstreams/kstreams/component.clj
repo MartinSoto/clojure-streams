@@ -10,16 +10,16 @@
       (.put props key value))
     props))
 
-(defrecord Producer [config topic-name producer]
+(defrecord Producer [config key-serde value-serde topic-name producer]
   component/Lifecycle
 
   (start [component]
     (if producer
       component
       (assoc component
-             :config config
-             :topic-name topic-name
-             :producer (KafkaProducer. (config->props config)))))
+             :producer (if (and key-serde value-serde)
+                         (KafkaProducer. (config->props config) key-serde value-serde)
+                         (KafkaProducer. (config->props config))))))
 
   (stop [component]
     (if producer
@@ -27,8 +27,15 @@
           (assoc component :producer nil))
       component)))
 
-(defn new-producer [topic-name config]
-  (map->Producer {:config config :topic-name topic-name}))
+(defn new-producer
+  ([topic-name config]
+   (map->Producer {:config config
+                   :topic-name topic-name}))
+  ([topic-name config key-serde value-serde]
+   (map->Producer {:config config
+                   :key-serde key-serde
+                   :value-serde value-serde
+                   :topic-name topic-name})))
 
 (defn producer-send! [{:keys [producer topic-name]} msg & msgs]
   (doseq [[key value] (cons msg msgs)]

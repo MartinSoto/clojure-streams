@@ -22,11 +22,9 @@
    (new-manual-producer topic-name {}))
   ([topic-name options]
    (let [key-serde (:key-serde options (Serdes/String))
-         value-serde (:value-serde options (Serdes/String))
-         config (assoc default-producer-config
-                       "key.serializer" (-> key-serde .serializer .getClass .getName)
-                       "value.serializer" (-> value-serde .serializer .getClass .getName))]
-     (new-producer topic-name config))))
+         value-serde (:value-serde options (Serdes/String))]
+     (new-producer topic-name default-producer-config
+                   (.serializer key-serde) (.serializer value-serde)))))
 
 
 (def default-topology-config
