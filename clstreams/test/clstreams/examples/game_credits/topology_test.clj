@@ -17,11 +17,13 @@
      :partition (.partition pr)}))
 
 (deftest test-game-credits-topology
-  (let [driver (ProcessorTopologyTestDriver. (StreamsConfig. sut/game-credits-props)
-                                             (sut/game-credit-builder)
-                                             (into-array String ["game-credits-states"]))
+  (let [store-name "states"
 
-        states (.getKeyValueStore driver "game-credits-states")
+        driver (ProcessorTopologyTestDriver. (StreamsConfig. sut/game-credits-props)
+                                             (sut/game-credit-builder)
+                                             (into-array String [store-name]))
+
+        states (.getKeyValueStore driver store-name)
 
         str-ser (-> (Serdes/String) .serializer)
         str-des (-> (Serdes/String) .deserializer)

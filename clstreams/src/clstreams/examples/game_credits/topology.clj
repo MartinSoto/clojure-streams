@@ -12,6 +12,8 @@
 (def game-credits-props
   (assoc default-topology-config StreamsConfig/APPLICATION_ID_CONFIG "game-credits-state"))
 
+(def states-store-name "states")
+
 (deftype GameCreditsProcessor [^:unsynchronized-mutable context]
 
   Transformer
@@ -20,7 +22,7 @@
     (set! context ctx))
 
   (transform [this obj-key request]
-    (let [state-store (.getStateStore context "game-credits-states")
+    (let [state-store (.getStateStore context states-store-name)
           old-state (.get state-store obj-key)
           new-state (state/update-credits old-state request)]
       (if (contains? new-state :errors)
@@ -41,7 +43,6 @@
 
 (defn game-credit-builder []
   (let [builder (KStreamBuilder.)
-        states-store-name "game-credits-states"
         states-store (-> (Stores/create states-store-name)
                          (.withKeys (Serdes/String))
                          (.withValues (serdes/edn-serde))
