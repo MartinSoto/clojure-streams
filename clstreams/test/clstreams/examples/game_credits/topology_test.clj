@@ -31,8 +31,12 @@
         edn-des (serdes/edn-deserializer)
 
         process (fn [k v] (.process driver "game-credits-requests" k v str-ser edn-ser))
-        read-output (fn [] (prod-record->map
-                            (.readOutput driver "game-credits-requests-errors" str-des edn-des)))
+
+        read-error-event
+        (fn [] (prod-record->map
+                (.readOutput driver
+                             "game-credits-requests-errors"
+                             str-des edn-des)))
 
         account-key "gamer1"]
 
@@ -46,19 +50,25 @@
         (is (= type ::st/account-created))
         (is (= balance 0))
         (is (nil? credits))
-        (is (nil? errors))))
+        (is (nil? errors)))
+
+      (is (nil? (read-error-event)) "no error was produced"))
 
     (testing "using more credits than available results in an error"
-      (.put states account-key {:balance 7})
-      (process account-key {:type ::st/use-credits-requested
-                            :credits 10})
-      (let [{key :key {:keys [type balance credits errors]} :value :as out} (read-output)]
-        (is (some? out))
+      (let [state {:balance 7}]
+        (.put states account-key state)
 
-        (is (= key account-key))
+        (process account-key {:type ::st/use-credits-requested
+                              :credits 10})
+        (let [{key :key {:keys [type balance credits errors]} :value :as out} (read-error-event)]
+          (is (some? out))
 
-        (is (= type ::st/insufficient-credits-error))
-        (is (nil? balance))
-        (is (nil? credits))
-        (is (some? errors))))))
+          (is (= key account-key))
+
+          (is (= type ::st/insufficient-credits-error))
+          (is (nil? balance))
+          (is (nil? credits))
+          (is (some? errors)))
+
+        (is (= (.get states account-key) state) "state wasn't changed")))))
 
