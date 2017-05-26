@@ -15,13 +15,14 @@
 
             [clstreams.examples.count-words.system :refer
              [count-words-system produce-words]]
-            [clstreams.examples.game-credits.state]))
+            [clstreams.examples.game-credits.system :refer
+             [game-credits-system send-request]]))
 
 (def system nil)
 
 (defn init-system []
   (alter-var-root #'system
-                  (constantly (count-words-system))))
+                  (constantly (game-credits-system))))
 
 (defn start-system []
   (alter-var-root #'system component/start))
