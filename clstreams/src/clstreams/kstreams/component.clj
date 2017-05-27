@@ -42,7 +42,7 @@
                    :topic-name topic-name})))
 
 (defn producer-send! [{:keys [producer topic-name]} msg & msgs]
-  (doseq [[key value] (cons msg msgs)]
+  (for [[key value] (cons msg msgs)]
     @(.send producer (ProducerRecord. topic-name key value))))
 
 

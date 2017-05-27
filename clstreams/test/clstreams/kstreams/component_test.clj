@@ -1,17 +1,24 @@
 (ns clstreams.kstreams.component-test
-  (:require [clstreams.kstreams.component :as sut]
-            [clojure.test :refer :all]
+  (:require [clojure.test :refer :all]
+            [clstreams.kstreams.component :as sut]
             [com.stuartsierra.component :as component])
-  (:import org.apache.kafka.clients.producer.MockProducer
-           org.apache.kafka.common.serialization.Serdes))
+  (:import [org.apache.kafka.clients.producer KafkaProducer ProducerRecord]
+           org.mockito.Mockito))
 
-(defn kafka-mock-producer
-  ([config] (MockProducer. true
-                           (.serializer (Serdes/String))
-                           (.serializer (Serdes/String))))
-  ([config key-serde value-serde] (MockProducer. true
-                                                 (.serializer key-serde)
-                                                 (.serializer value-serde))))
+(defn mock [cls] (Mockito/mock cls))
+
+(defn mock-fn [] (mock clojure.lang.IFn))
+
+(defmacro return-> [mock-obj-expr method-invocation-form return-value-expr]
+  `(let [mock-obj# ~mock-obj-expr]
+     (-> (Mockito/doReturn ~return-value-expr)
+         (.when mock-obj#)
+         ~method-invocation-form)
+     mock-obj#))
+
+(defmacro on-call-> [mock-fn-expr parameter-expr-list return-value-expr]
+  `(return-> ~mock-fn-expr (.invoke ~@parameter-expr-list) ~return-value-expr))
+
 
 (defmacro cycle-component
   "Run a component through its lifecycle (initialize, start, stop) and
@@ -32,7 +39,7 @@
            ~started-bform started#]
        ~@started-test-exprs
 
-       (let [stopped#  (component/stop ~started-bform)
+       (let [stopped#  (component/stop started#)
              ~stopped-bform stopped#]
          ~@stopped-test-exprs))))
 
@@ -56,25 +63,42 @@
       (is (= stopped stopped-again) "component's stop is idempotent")))))
 
 
+(def prod-topic-name "ze-topic")
+(def prod-config {"ze.config.option" "ze config value"})
+
 (deftest test-cycle-producer-component
-  (with-redefs [sut/kafka-producer kafka-mock-producer]
-    (let [tp-name "ze-topic"
-          cnf {"ze.config.option" "ze config value"}]
+  (let [producer-mock (mock KafkaProducer)
+        kafka-producer-fn (on-call-> (mock-fn) [prod-config] producer-mock)]
+
+    (with-redefs [sut/kafka-producer kafka-producer-fn]
       (cycle-component
 
-       [{:keys [config topic-name producer]} (sut/new-producer tp-name cnf)]
-       ((is (= config cnf))
-        (is (= topic-name tp-name))
+       [{:keys [config topic-name producer]} (sut/new-producer prod-topic-name prod-config)]
+       ((is (= config prod-config))
+        (is (= topic-name prod-topic-name))
         (is (nil? producer)))
 
        [{:keys [producer]}]
        ((is (some? producer)))
 
        [{:keys [producer]}]
-       ((is (nil? producer)))))))
+       ((is (nil? producer))
+        (-> producer-mock Mockito/verify .close))))))
 
 (deftest test-idempotent-producer-component
-  (with-redefs [sut/kafka-producer kafka-mock-producer]
-    (let [tp-name "ze-topic"
-          cnf {"ze.config.option" "ze config value"}]
-      (check-idempotence (sut/new-producer tp-name cnf)))))
+  (let [producer-mock (mock KafkaProducer)
+        kafka-producer-fn (on-call-> (mock-fn) [prod-config] producer-mock)]
+    (with-redefs [sut/kafka-producer kafka-producer-fn]
+      (check-idempotence (sut/new-producer prod-topic-name prod-config)))))
+
+(deftest test-send
+  (let [key "abc"
+        value 42
+
+        producer-mock (return-> (mock KafkaProducer)
+                                (.send (ProducerRecord. prod-topic-name key value))
+                                (future :the-answer))
+        prod-system (assoc (sut/new-producer prod-topic-name prod-config)
+                           :producer producer-mock)]
+
+    (is (= (sut/producer-send! prod-system [key value]) [:the-answer]))))
