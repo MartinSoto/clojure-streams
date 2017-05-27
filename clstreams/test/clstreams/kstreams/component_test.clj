@@ -14,6 +14,9 @@
                                                  (.serializer value-serde))))
 
 (defmacro cycle-component
+  "Run a component through its lifecycle (initialize, start, stop) and
+  run test assertions after each step."
+
   [[initial-bform component-expr]
    initial-test-exprs
    [started-bform]
@@ -33,12 +36,32 @@
              ~stopped-bform stopped#]
          ~@stopped-test-exprs))))
 
+(defn check-idempotence
+  "Check that the provided component has idempotent start and stop
+  operations."
 
-(deftest test-producer-component
+  [component]
+
+  (cycle-component
+
+   [initial component]
+   ()
+
+   [started]
+   ((let [started-again (component/start started)]
+      (is (= started started-again) "component's start is idempotent")))
+
+   [stopped]
+   ((let [stopped-again (component/stop stopped)]
+      (is (= stopped stopped-again) "component's stop is idempotent")))))
+
+
+(deftest test-cycle-producer-component
   (with-redefs [sut/kafka-producer kafka-mock-producer]
     (let [tp-name "ze-topic"
           cnf {"ze.config.option" "ze config value"}]
       (cycle-component
+
        [{:keys [config topic-name producer]} (sut/new-producer tp-name cnf)]
        ((is (= config cnf))
         (is (= topic-name tp-name))
@@ -49,3 +72,9 @@
 
        [{:keys [producer]}]
        ((is (nil? producer)))))))
+
+(deftest test-idempotent-producer-component
+  (with-redefs [sut/kafka-producer kafka-mock-producer]
+    (let [tp-name "ze-topic"
+          cnf {"ze.config.option" "ze config value"}]
+      (check-idempotence (sut/new-producer tp-name cnf)))))
