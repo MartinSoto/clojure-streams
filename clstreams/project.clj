@@ -22,10 +22,12 @@
 
   :profiles {:dev
              {:source-paths ["dev"]
-              :dependencies [[org.apache.kafka/kafka-streams "0.10.2.1" :classifier "test"]
+              :dependencies [[junit/junit "4.12"]
+                             [org.apache.kafka/kafka-streams "0.10.2.1" :classifier "test"]
                              [org.apache.kafka/kafka-clients "0.10.2.1" :classifier "test"]
                              [org.clojure/java.classpath "0.2.3"]
-                             [org.clojure/tools.namespace "0.3.0-alpha3"]]
+                             [org.clojure/tools.namespace "0.3.0-alpha3"]
+                             [org.mockito/mockito-core "1.10.19"]]
               :main ^:skip-aot user}
 
              :uberjar
