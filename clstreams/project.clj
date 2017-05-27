@@ -6,9 +6,7 @@
 
   :dependencies [[com.stuartsierra/component "0.3.2"]
                  [org.apache.kafka/kafka-clients "0.10.2.1"]
-                 [org.apache.kafka/kafka-clients "0.10.2.1" :classifier "test"]
                  [org.apache.kafka/kafka-streams "0.10.2.1"]
-                 [org.apache.kafka/kafka-streams "0.10.2.1" :classifier "test"]
                  [org.clojure/clojure "1.8.0"]
                  [org.clojure/core.async "0.3.442"]
                  [org.clojure/tools.logging "0.3.1"]
@@ -24,7 +22,9 @@
 
   :profiles {:dev
              {:source-paths ["dev"]
-              :dependencies [[org.clojure/java.classpath "0.2.3"]
+              :dependencies [[org.apache.kafka/kafka-streams "0.10.2.1" :classifier "test"]
+                             [org.apache.kafka/kafka-clients "0.10.2.1" :classifier "test"]
+                             [org.clojure/java.classpath "0.2.3"]
                              [org.clojure/tools.namespace "0.3.0-alpha3"]]
               :main ^:skip-aot user}
 
