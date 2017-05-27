@@ -17,17 +17,17 @@
       (with-spy-redefs
         [[aleph/start-server start-server-spy] (spy server-dummy)]
 
-        (let [im (new-aleph app-factory {:host "0.1.2.3" :port 1234})]
-          (is (= (:server im) nil))
+        (let [aleph (new-aleph app-factory {:host "0.1.2.3" :port 1234})]
+          (is (= (:server aleph) nil))
           (is (= (-> start-server-spy calls count) 0))
           (is (= (-> stop-server-spy calls count) 0))
 
-          (let [started-aleph (component/start im)]
+          (let [started-aleph (component/start aleph)]
             (is (= (:server started-aleph) server-dummy))
             (is (= (-> start-server-spy calls count) 1))
             (is (= (-> stop-server-spy calls count) 0))
             (is (= (-> app-factory-spy calls count) 1))
-            (is (= (-> app-factory-spy calls first) [im]))
+            (is (= (-> app-factory-spy calls first) [aleph]))
 
             (let [stopped-aleph (component/stop started-aleph)]
               (is (= (:stop-server stopped-aleph) nil)))))
