@@ -10,6 +10,10 @@
       (.put props key value))
     props))
 
+(defn kafka-producer
+  ([config] (KafkaProducer. config))
+  ([config key-serde value-serde] (KafkaProducer. config key-serde value-serde)))
+
 (defrecord Producer [config key-serde value-serde topic-name producer]
   component/Lifecycle
 
@@ -18,8 +22,8 @@
       component
       (assoc component
              :producer (if (and key-serde value-serde)
-                         (KafkaProducer. (config->props config) key-serde value-serde)
-                         (KafkaProducer. (config->props config))))))
+                         (kafka-producer (config->props config) key-serde value-serde)
+                         (kafka-producer (config->props config))))))
 
   (stop [component]
     (if producer
