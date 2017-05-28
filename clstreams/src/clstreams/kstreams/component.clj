@@ -46,13 +46,16 @@
     @(.send producer (ProducerRecord. topic-name key value))))
 
 
+(defn kafka-streams [builder config]
+  (KafkaStreams. builder (StreamsConfig. config)))
+
 (defrecord Topology [config builder kstreams]
   component/Lifecycle
 
   (start [component]
     (if kstreams
       component
-      (let [streams (KafkaStreams. builder (StreamsConfig. config))]
+      (let [streams (kafka-streams builder config)]
         (log/info (get config StreamsConfig/APPLICATION_ID_CONFIG) "Starting topology")
         (.start streams)
         (assoc component :kstreams streams))))
