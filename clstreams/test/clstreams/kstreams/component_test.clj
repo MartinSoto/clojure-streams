@@ -22,7 +22,7 @@
         (is (nil? producer)))
 
        [{:keys [producer]}]
-       ((is (some? producer)))
+       ((is (= producer producer-mock)))
 
        [{:keys [producer]}]
        ((is (nil? producer))
