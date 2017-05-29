@@ -12,5 +12,5 @@
          ~method-invocation-form)
      mock-obj#))
 
-(defmacro on-call-> [mock-fn-expr parameter-expr-list return-value-expr]
+(defmacro on-call [mock-fn-expr parameter-expr-list return-value-expr]
   `(return-> ~mock-fn-expr (.invoke ~@parameter-expr-list) ~return-value-expr))

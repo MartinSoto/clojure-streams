@@ -14,7 +14,7 @@
 
 (deftest test-cycle-producer-component
   (let [producer-mock (mkto/mock KafkaProducer)
-        kafka-producer-fn (mkto/on-call-> (mkto/mock-fn) [fake-config] producer-mock)]
+        kafka-producer-fn (mkto/on-call (mkto/mock-fn) [fake-config] producer-mock)]
 
     (with-redefs [sut/kafka-producer kafka-producer-fn]
       (tu-comp/cycle-component
@@ -33,7 +33,7 @@
 
 (deftest test-idempotent-producer-component
   (let [producer-mock (mkto/mock KafkaProducer)
-        kafka-producer-fn (mkto/on-call-> (mkto/mock-fn) [fake-config] producer-mock)]
+        kafka-producer-fn (mkto/on-call (mkto/mock-fn) [fake-config] producer-mock)]
     (with-redefs [sut/kafka-producer kafka-producer-fn]
       (tu-comp/check-idempotence (sut/new-producer prod-topic-name fake-config)))))
 
@@ -53,7 +53,7 @@
 (deftest test-cycle-topology-component
   (let [builder-mock (mkto/mock KStreamBuilder)
         kstreams-mock (mkto/mock KafkaStreams)
-        kafka-streams-fn (mkto/on-call-> (mkto/mock-fn)
+        kafka-streams-fn (mkto/on-call (mkto/mock-fn)
                                          [builder-mock fake-config] kstreams-mock)]
 
     (with-redefs [sut/kafka-streams kafka-streams-fn]
@@ -74,7 +74,7 @@
 (deftest test-idempotent-topology-component
   (let [builder-mock (mkto/mock KStreamBuilder)
         kstreams-mock (mkto/mock KafkaStreams)
-        kafka-streams-fn (mkto/on-call-> (mkto/mock-fn)
+        kafka-streams-fn (mkto/on-call (mkto/mock-fn)
                                          [builder-mock fake-config] kstreams-mock)]
 
     (with-redefs [sut/kafka-streams kafka-streams-fn]
