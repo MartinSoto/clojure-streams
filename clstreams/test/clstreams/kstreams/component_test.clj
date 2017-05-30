@@ -29,7 +29,7 @@
 
        [{:keys [producer]}]
        ((is (nil? producer))
-        (-> producer-mock Mockito/verify .close))))))
+        (mkto/verify-> producer-mock .close))))))
 
 (deftest test-idempotent-producer-component
   (let [producer-mock (mkto/mock KafkaProducer)
@@ -69,7 +69,7 @@
 
        [{:keys [kstreams]}]
        ((is (nil? kstreams))
-        (-> kstreams-mock Mockito/verify .close))))))
+        (mkto/verify-> kstreams-mock .close))))))
 
 (deftest test-idempotent-topology-component
   (let [builder-mock (mkto/mock KStreamBuilder)
