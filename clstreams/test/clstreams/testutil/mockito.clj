@@ -1,4 +1,5 @@
 (ns clstreams.testutil.mockito
+  (:require [clojure.test :as test])
   (:import org.mockito.Mockito))
 
 (defn mock [cls] (Mockito/mock cls))
@@ -19,7 +20,10 @@
   ([mock-obj-expr method-invocation-form]
    `(verify-> ~mock-obj-expr ~method-invocation-form (Mockito/times 1)))
   ([mock-obj-expr method-invocation-form counting-predicate-expr]
-   `(-> ~mock-obj-expr (Mockito/verify ~counting-predicate-expr) ~method-invocation-form)))
+   `(try
+      (-> ~mock-obj-expr (Mockito/verify ~counting-predicate-expr) ~method-invocation-form)
+      (test/is true)
+      (catch java.lang.AssertionError ae# (test/is nil (str ae#))))))
 
 (defmacro verify-fn
   ([mock-fn-expr parameter-expr-list]
