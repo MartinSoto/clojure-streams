@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 
+COMPOSE_PROJECT_NAME=clojurestreams
 COMPOSE_SERVICE=clojure
 PROGRAM=lein
+
+source $(dirname $0)/docker-fns.sh
 
 cnt_name=$PROGRAM.$$
 
 start_container() {
-    compose_project=${PROJECT_DIR:-.}/docker-compose.yml
-
     task_options=""
     if [ -n "$DOCKER_RUN_OPTS" ]; then
         task_options="$task_options $DOCKER_RUN_OPTS"
@@ -17,18 +18,21 @@ start_container() {
         task_options="$task_options -p $repl_port:$repl_port"
     fi
 
-    docker-compose \
-        --file "$compose_project" \
+    docker \
         run \
         --name $cnt_name \
         --rm \
+        -ti \
+        --network=${COMPOSE_PROJECT_NAME}_default \
+        -v ${PROJECT_DIR}:${PROJECT_DIR} \
+        -v ${COMPOSE_PROJECT_NAME}_maven-repo:/var/lib/maven \
         -e USER_UID=$(id -u) \
         -e USER_GID=$(id -g) \
         -e USER_DIR=$HOME \
         -e USER_NAME=$(whoami) \
         -w $(pwd) \
         $task_options \
-        $COMPOSE_SERVICE \
+        ${COMPOSE_PROJECT_NAME}_${COMPOSE_SERVICE} \
         $PROGRAM "$@"
 }
 
@@ -38,4 +42,6 @@ kill_container() {
 
 trap kill_container EXIT
 
-start_container "$@"
+if ensure_service kafka; then
+    start_container "$@"
+fi

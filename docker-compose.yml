@@ -7,21 +7,6 @@ services:
     ports:
       - "9092:9092"
 
-  # Test command-line producer and consumer:
-  #
-  # docker-compose run --rm kafka bash -c "/opt/kafka_2.11-0.10.1.0/bin/kafka-console-producer.sh --broker-list kafka:9092 --topic test"
-  #
-  # docker-compose run --rm kafka bash -c "/opt/kafka_2.11-0.10.1.0/bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic test"
-
-  clojure:
-    build: docker/clojure
-    volumes:
-      - ${PROJECT_DIR}:${PROJECT_DIR}
-      - maven-repo:/var/lib/maven
-    links:
-      - kafka
-    command: sleep 1
-
   gradle:
     build: docker/gradle
     volumes:
