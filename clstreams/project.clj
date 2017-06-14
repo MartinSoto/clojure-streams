@@ -15,7 +15,8 @@
                  [spootnik/signal "0.2.1"]
                  [aleph "0.4.3"]
                  [bidi "2.1.0"]
-                 [clansi "1.0.0"]]
+                 [clansi "1.0.0"]
+                 [yada "1.2.6"]]
 
   :main ^:skip-aot clstreams.core
   :target-path "target/%s"
