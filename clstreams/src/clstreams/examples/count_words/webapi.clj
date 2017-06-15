@@ -3,16 +3,14 @@
             [clojure.core.async :refer [<! >! chan go timeout]]
             [clstreams.webapi.component :refer [new-aleph]]
             [manifold.stream :as stream]
-            [ring.middleware.json :refer [wrap-json-body wrap-json-response]]
-            [ring.util.response :refer [response]]
             [yada.yada :as yada])
   (:import org.apache.kafka.streams.state.QueryableStoreTypes))
 
 (defn make-word-count-handler [{{kstreams :kstreams} :pipeline}]
   (yada/resource
    {:parameters {:path {:word String}}
-    :methods {:get {:produces {:media-type "text/plain"}
-                    :response
+    :produces "application/json"
+    :methods {:get {:response
                     (fn [ctx]
                       (let [word (get-in ctx [:parameters :path :word])
                             store (.store kstreams "Counts"
@@ -20,19 +18,16 @@
                             content (chan)]
                         (go
                           (<! (timeout 1))
-                          (>! content (->> word (.get store) (#(if % % 0)) str)))
+                          (>! content
+                              (let [count (->> word (.get store) (#(if % % 0)))]
+                                {:word word
+                                 :count count})))
                         (-> content stream/->source stream/take!)))}}}))
 
-(defn make-main-handler [component]
+(defn make-app [component]
   (bidi/make-handler
    ["/" {["word-count/" :word] (make-word-count-handler component)
          "hello" (yada/handler "Hello World!\n")}]))
-
-(defn make-app [component]
-  (-> (make-main-handler component)
-      wrap-json-body
-      wrap-json-response))
-
 
 (defn web-test []
   (new-aleph make-app {:host "0.0.0.0" :port 8080}))
