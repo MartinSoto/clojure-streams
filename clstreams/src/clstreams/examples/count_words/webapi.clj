@@ -1,6 +1,6 @@
 (ns clstreams.examples.count-words.webapi
   (:require [bidi.ring :as bidi]
-            [clojure.core.async :refer [<! go timeout]]
+            [clojure.core.async :refer [<! >! chan go timeout]]
             [clstreams.webapi.component :refer [new-aleph]]
             [manifold.stream :as stream]
             [ring.middleware.json :refer [wrap-json-body wrap-json-response]]
@@ -22,22 +22,17 @@
                     (fn [ctx]
                       (let [word (get-in ctx [:parameters :path :word])
                             store (.store kstreams "Counts"
-                                          (QueryableStoreTypes/keyValueStore))]
-                        (->> word (.get store) (#(if % % 0)) str)))}}}))
+                                          (QueryableStoreTypes/keyValueStore))
+                            content (chan)]
+                        (go
+                          (<! (timeout 1))
+                          (>! content (->> word (.get store) (#(if % % 0)) str)))
+                        (-> content stream/->source stream/take!)))}}}))
 
 (defn make-main-handler [component]
   (bidi/make-handler
    ["/" {["word-count/" :word] (make-word-count-handler component)
          "hello" (yada/handler "Hello World!\n")}]))
-
-(defn make-async-handler [component]
-  (fn [request]
-    (let [handler (make-main-handler component)]
-      (-> (go
-            (<! (timeout 1))
-            (handler request))
-          stream/->source
-          stream/take!))))
 
 (defn make-app [component]
   (-> (make-main-handler component)
