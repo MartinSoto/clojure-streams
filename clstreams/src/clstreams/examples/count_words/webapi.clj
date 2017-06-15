@@ -8,12 +8,6 @@
             [yada.yada :as yada])
   (:import org.apache.kafka.streams.state.QueryableStoreTypes))
 
-(defn make-word-count-handler-xx [{{kstreams :kstreams} :pipeline}]
-  (fn [{:keys [route-params]}]
-    (let [store (.store kstreams "Counts" (QueryableStoreTypes/keyValueStore))]
-      (->> (:word route-params) (.get store) (#(if % % 0)) str response))
-    ))
-
 (defn make-word-count-handler [{{kstreams :kstreams} :pipeline}]
   (yada/resource
    {:parameters {:path {:word String}}
