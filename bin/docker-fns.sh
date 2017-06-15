@@ -10,7 +10,6 @@ if [ -z $COMPOSE_PROJECT_NAME ]; then
 fi
 
 COMPOSE_FILE=${PROJECT_DIR:-.}/docker-compose.yml
-COMPOSE_PROJECT_NAME=clojurestreams
 
 start_compose_project() {
     echo "Starting services"
