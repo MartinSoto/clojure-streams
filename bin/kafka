@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 
-COMPOSE_SERVICE=kafka
+ZK_SERVICE=zookeeper
+
+KAFKA_SERVICE=kafka
 KAFKA_BIN_PATH=/opt/kafka_*/bin
 
-cnt_name=$COMPOSE_SERVICE.$$
+cnt_name=$KAFKA_SERVICE.$$
 
 
 run_container() {
@@ -19,7 +21,7 @@ run_container() {
         -e USER_DIR=$HOME \
         -e USER_NAME=$(whoami) \
         -w $(pwd) \
-        $COMPOSE_SERVICE \
+        $KAFKA_SERVICE \
         "$@"
 }
 
@@ -49,13 +51,13 @@ run_kafka_command() {
 run_zookeeper_command() {
     cmd=$1
     shift
-    run_kafka_command $cmd --zookeeper $COMPOSE_SERVICE:2181 "$@"
+    run_kafka_command $cmd --zookeeper $ZK_SERVICE:2181 "$@"
 }
 
 run_bootstrap_command() {
     cmd=$1
     shift
-    run_kafka_command $cmd --bootstrap-server $COMPOSE_SERVICE:9092 "$@"
+    run_kafka_command $cmd --bootstrap-server $KAFKA_SERVICE:9092 "$@"
 }
 
 
