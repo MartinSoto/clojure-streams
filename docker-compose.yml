@@ -1,11 +1,42 @@
-version: '2'
+version: "2"
 
 services:
 
-  kafka:
-    image: spotify/kafka
+  zookeeper:
+    image: zookeeper
     ports:
-      - "9092:9092"
+      - 2181:2181
+    restart: unless-stopped
+    volumes:
+      - zookeeper-data:/data
+      - zookeeper-datalog:/datalog
+    logging:
+      driver: json-file
+      options:
+        max-size: "512k"
+        max-file: "2"
+
+  kafka:
+    build: docker/kafka
+    ports:
+      - 9092:9092
+    restart: unless-stopped
+    environment:
+      - KAFKA_ADVERTISED_HOST_NAME=kafka
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper
+      - KAFKA_ZOOKEEPER_CONNECTION_TIMEOUT_MS=60000
+      - KAFKA_DELETE_TOPIC_ENABLE=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - kafka-data:/var/lib/kafka
+    links:
+      - zookeeper
+    logging:
+      driver: json-file
+      options:
+        max-size: "512k"
+        max-file: "2"
+
 
   gradle:
     build: docker/gradle
@@ -32,6 +63,11 @@ services:
 
 volumes:
 
-  maven-repo:
+  zookeeper-data: {}
+  zookeeper-datalog: {}
 
-  gradle-dir:
+  kafka-data: {}
+
+  maven-repo: {}
+
+  gradle-dir: {}
