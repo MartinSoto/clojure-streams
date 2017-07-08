@@ -1,19 +1,22 @@
-FROM debian:latest
+FROM alpine as build
+
+RUN apk add --no-cache bash g++ make git curl python zlib-dev ca-certificates openssl
 
 WORKDIR /build
+RUN git clone https://github.com/edenhill/kafkacat.git
 
-ENV BUILD_PACKAGES "build-essential git curl zlib1g-dev python"
-RUN apt-get update -y && \
-    apt-get install $BUILD_PACKAGES -y && \
-    git clone https://github.com/edenhill/kafkacat.git && \
-    cd kafkacat && \
-    ./bootstrap.sh && \
-    make install && \
-    cd .. && rm -rf kafkacat && \
-    AUTO_ADDED_PACKAGES=`apt-mark showauto` && \
-    apt-get remove --purge -y $BUILD_PACKAGES $AUTO_ADDED_PACKAGES && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+WORKDIR /build/kafkacat
+RUN sed -i -e 's%\./configure%./configure --prefix=/usr%g' ./bootstrap.sh
+RUN sed -i -e 's%/usr/local%/usr%g' ./bootstrap.sh
+RUN ./bootstrap.sh
+RUN DESTDIR=/dest make install
+
+
+FROM alpine
+
+RUN apk add --no-cache zlib
+
+COPY --from=build /dest /
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
