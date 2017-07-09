@@ -26,8 +26,7 @@
   [dispatch-value-fn initial-mm-data class-name {:keys [members]}]
   (->>
    members
-   (remove
-    #(clojure.string/includes? (str (:name %)) "."))
+   (remove #(clojure.string/includes? (str (:name %)) "."))
    (filter (comp :public :flags))
    (reduce
     (fn
