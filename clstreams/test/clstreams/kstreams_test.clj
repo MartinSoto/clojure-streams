@@ -24,8 +24,7 @@
   (testing "Garbage in, garbage out..."
     (let [builder (KStreamBuilder.)
           _ (build-copy builder)
-          driver (ProcessorTopologyTestDriver. (default-props) builder
-                                               (into-array String ["Counts"]))]
+          driver (ProcessorTopologyTestDriver. (default-props) builder)]
       (.process driver "streams-file-input" "" "all streams lead to kafka"
                 string-serializer string-serializer)
       (let [record (.readOutput driver "streams-wordcount-output"
@@ -47,8 +46,7 @@
   (testing "Complete table written to output topic"
     (let [builder (KStreamBuilder.)
           _ (build-count-words builder)
-          driver (ProcessorTopologyTestDriver. (default-props) builder
-                                               (into-array String ["Counts"]))]
+          driver (ProcessorTopologyTestDriver. (default-props) builder)]
       (.process driver "streams-file-input" "" "all streams lead to kafka"
                 string-serializer string-serializer)
       (.process driver "streams-file-input" "" "hello kafka streams"

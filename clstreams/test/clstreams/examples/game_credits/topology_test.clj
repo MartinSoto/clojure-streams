@@ -20,8 +20,7 @@
   (let [store-name "states"
 
         driver (ProcessorTopologyTestDriver. (StreamsConfig. sut/game-credits-props)
-                                             (sut/game-credit-builder)
-                                             (into-array String [store-name]))
+                                             (sut/game-credit-builder))
 
         states (.getKeyValueStore driver store-name)
 
