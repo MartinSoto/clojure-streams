@@ -70,10 +70,12 @@
   '{:members
     #{{:name get
        :parameter-types [java.lang.String]
-       :return-type java.lang.Long}
+       :return-type java.lang.Long
+       :flags #{:public}}
       {:name getOrDefault
        :parameter-types [java.lang.String java.lang.Long]
-       :return-type java.lang.Long}}})
+       :return-type java.lang.Long
+       :flags #{:public}}}})
 
 (def hashmap-refl
   '{:members
@@ -89,26 +91,42 @@
        :exception-types [],
        :flags #{:public}}}})
 
+(def map-refl-with-private-method
+  '{:members
+    #{{:name get
+       :parameter-types [java.lang.String]
+       :return-type java.lang.Long
+       :flags #{:public}}
+      {:name getOrDefault
+       :parameter-types [java.lang.String java.lang.Long]
+       :return-type java.lang.Long
+       :flags #{:private}}}})
+
 (def map-refl-overload
   '{:members
     #{{:name get
        :parameter-types [java.lang.String java.lang.Integer]
-       :return-type java.lang.Integer}
+       :return-type java.lang.Integer
+       :flags #{:public}}
       {:name get
        :parameter-types [java.lang.String]
-       :return-type java.lang.Long}
+       :return-type java.lang.Long
+       :flags #{:public}}
       {:name getOrDefault
        :parameter-types [java.lang.String java.lang.Long]
-       :return-type java.lang.Long}}})
+       :return-type java.lang.Long
+       :flags #{:public}}}})
 
 (def mutable-map-refl-overload
   '{:members
     #{{:name get
        :parameter-types [java.lang.String]
-       :return-type java.lang.Long}
+       :return-type java.lang.Long
+       :flags #{:public}}
       {:name put
        :parameter-types [java.lang.String java.lang.Long]
-       :return-type java.lang.Long}}})
+       :return-type java.lang.Long
+       :flags #{:public}}}})
 
 (defn dispatch-value-class-arity
   [class-name {:keys [parameter-types return-type]}]
@@ -124,13 +142,19 @@
                :return-type java.lang.Long}},
              get {[java.util.Map 1]
                   {:parameter-types [java.lang.String],
-                   :return-type java.lang.Long}}})))
+                   :return-type java.lang.Long,}}})))
   (testing "Ignores constructors in class reflection"
     (is (= (add-refl-to-multimethods-data dispatch-value-class-arity
                                           {} 'java.util.HashMap hashmap-refl)
            '{get {[java.util.HashMap 1]
                   {:parameter-types [java.lang.Object],
                    :return-type java.lang.Object}}})))
+  (testing "Ignores methods that aren't public"
+    (is (= (add-refl-to-multimethods-data dispatch-value-class-arity
+                                          {} 'java.util.Map map-refl-with-private-method)
+           '{get {[java.util.Map 1]
+                  {:parameter-types [java.lang.String],
+                   :return-type java.lang.Long,}}})))
   (testing "Builds initial data structure from reflection with overloaded methods"
     (is (= (add-refl-to-multimethods-data dispatch-value-class-arity
                                           {} 'java.util.Map map-refl-overload)

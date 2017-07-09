@@ -28,6 +28,7 @@
    members
    (remove
     #(clojure.string/includes? (str (:name %)) "."))
+   (filter (comp :public :flags))
    (reduce
     (fn
       [mm-data {:keys [name parameter-types return-type] :as mmethod}]
