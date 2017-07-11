@@ -1,12 +1,11 @@
 (ns clstreams.examples.count-words.pipelines
   (:require [clojure.string :as str]
+            [clstreams.kafka.component :refer [new-topology]]
             [clstreams.kstreams :as ks]
-            [clstreams.kstreams.component :refer [new-topology]]
             [clstreams.kstreams.helpers :refer [default-topology-config]])
   (:import org.apache.kafka.common.serialization.Serdes
-           org.apache.kafka.streams.KeyValue
-           org.apache.kafka.streams.kstream.KStreamBuilder
-           org.apache.kafka.streams.StreamsConfig))
+           [org.apache.kafka.streams KeyValue StreamsConfig]
+           org.apache.kafka.streams.kstream.KStreamBuilder))
 
 (def count-words-props
   (assoc default-topology-config StreamsConfig/APPLICATION_ID_CONFIG "streams-wordcount"))

@@ -1,6 +1,6 @@
 (ns clstreams.examples.game-credits.system
   (:require [clstreams.examples.game-credits.topology :as topology]
-            [clstreams.kstreams.component :refer [producer-send!]]
+            [clstreams.kafka.component :refer [producer-send!]]
             [clstreams.kstreams.helpers :as helpers]
             [clstreams.kstreams.serdes :as serdes]
             [com.stuartsierra.component :as component])

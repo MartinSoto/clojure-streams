@@ -1,4 +1,4 @@
-(ns clstreams.kstreams.component
+(ns clstreams.kafka.component
   (:require [clojure.tools.logging :as log]
             [com.stuartsierra.component :as component])
   (:import [org.apache.kafka.clients.producer KafkaProducer ProducerRecord]

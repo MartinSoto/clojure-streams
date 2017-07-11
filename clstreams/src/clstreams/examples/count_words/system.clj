@@ -1,7 +1,7 @@
 (ns clstreams.examples.count-words.system
   (:require [clstreams.examples.count-words.pipelines :as pipelines]
             [clstreams.examples.count-words.webapi :as webapi]
-            [clstreams.kstreams.component :refer [producer-send!]]
+            [clstreams.kafka.component :refer [producer-send!]]
             [clstreams.kstreams.helpers :as helpers]
             [com.stuartsierra.component :as component])
   (:import org.apache.kafka.common.serialization.Serdes))

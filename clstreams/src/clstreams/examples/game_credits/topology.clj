@@ -1,7 +1,7 @@
 (ns clstreams.examples.game-credits.topology
   (:require [clstreams.examples.game-credits.state :as state]
+            [clstreams.kafka.component :refer [new-topology]]
             [clstreams.kstreams :as ks]
-            [clstreams.kstreams.component :refer [new-topology]]
             [clstreams.kstreams.helpers :refer [default-topology-config]]
             [clstreams.kstreams.serdes :as serdes])
   (:import org.apache.kafka.common.serialization.Serdes

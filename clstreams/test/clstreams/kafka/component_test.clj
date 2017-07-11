@@ -1,6 +1,6 @@
-(ns clstreams.kstreams.component-test
+(ns clstreams.kafka.component-test
   (:require [clojure.test :refer :all]
-            [clstreams.kstreams.component :as sut]
+            [clstreams.kafka.component :as sut]
             [clstreams.testutil.component :as tu-comp]
             [clstreams.testutil.mockito :as mkto])
   (:import [org.apache.kafka.clients.producer KafkaProducer ProducerRecord]

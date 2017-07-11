@@ -1,8 +1,8 @@
 (ns clstreams.kstreams.helpers
   (:require clansi
             [clojure.pprint :refer [pprint]]
-            [clstreams.kstreams :as ks]
-            [clstreams.kstreams.component :refer [new-producer new-topology]])
+            [clstreams.kafka.component :refer [new-producer new-topology]]
+            [clstreams.kstreams :as ks])
   (:import org.apache.kafka.common.serialization.Serdes
            org.apache.kafka.streams.kstream.KStreamBuilder
            org.apache.kafka.streams.StreamsConfig))
