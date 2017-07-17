@@ -10,6 +10,14 @@
       (.put props key value))
     props))
 
+
+(defprotocol KafkaLandscape
+  "Topic landscape for an application."
+
+  (get-producer! [landscape topic])
+  (get-consumer! [landscape topic]))
+
+
 (defn kafka-producer
   ([config] (KafkaProducer. config))
   ([config key-serde value-serde] (KafkaProducer. config key-serde value-serde)))
