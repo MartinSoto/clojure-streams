@@ -2,21 +2,37 @@
   (:require [clstreams.kafka.component :refer [KafkaLandscape]]
             [com.stuartsierra.component :as component]))
 
-(defrecord MockKafkaLandscape []
+(defn assoc-or-close [map key closeable-value]
+  (if-let [prev (get map key)]
+    (do
+      (if (not (identical? closeable-value prev))
+        (.close closeable-value))
+      map)
+    (assoc map key closeable-value)))
+
+(defrecord MockKafkaLandscape [producers consumers]
   component/Lifecycle
 
-  (start [component])
+  (start [landscape]
+    landscape)
 
-  (stop [component])
+  (stop [landscape]
+    landscape)
 
   KafkaLandscape
 
   (get-producer! [landscape topic]
-    (org.apache.kafka.clients.producer.MockProducer.))
+    (get (swap! producers assoc-or-close topic
+                (org.apache.kafka.clients.producer.MockProducer.))
+         topic))
 
   (get-consumer! [landscape topic]
-    (org.apache.kafka.clients.consumer.MockConsumer.
-     org.apache.kafka.clients.consumer.OffsetResetStrategy/NONE)))
+    (get (swap! consumers assoc-or-close topic
+                (org.apache.kafka.clients.consumer.MockConsumer.
+                 org.apache.kafka.clients.consumer.OffsetResetStrategy/NONE))
+         topic)))
 
 (defn new-mock-kafka-landscape []
-  (map->MockKafkaLandscape {}))
+  (map->MockKafkaLandscape
+   {:producers (atom {})
+    :consumers (atom {})}))
