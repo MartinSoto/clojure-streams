@@ -1,5 +1,6 @@
 (ns clstreams.processor
-  (:require [clojure.spec.alpha :as s]))
+  (:require [clojure.spec.alpha :as s]
+            [com.rpl.specter :as sp]))
 
 (s/def ::op #{::count
               ::flat-map-values
@@ -32,3 +33,18 @@
 (s/def ::operation (s/multi-spec operation-type ::op))
 
 (s/def ::topology (s/map-of keyword? ::operation))
+
+
+(defn topological-order [topology]
+  (let [sources
+        (seq (sp/select [sp/ALL (sp/selected? sp/LAST ::op (partial = ::from))] topology))]
+    (loop [ordered sources
+           ordered-ids (into #{} (sp/select [sp/ALL sp/FIRST] sources))
+           remaining (apply dissoc topology ordered-ids)]
+      (if-let [next-gen
+               (seq (sp/select [sp/ALL (sp/selected? sp/LAST ::src ordered-ids)] remaining))]
+        (let [ids (sp/select [sp/ALL sp/FIRST] next-gen)]
+          (recur (concat ordered next-gen)
+                 (into ordered-ids ids)
+                 (apply dissoc remaining ids)))
+        ordered))))
