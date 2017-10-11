@@ -10,6 +10,7 @@
                  [org.clojure/clojure "1.8.0"]
                  [org.clojure/core.async "0.3.442"]
                  [org.clojure/tools.logging "0.3.1"]
+                 [org.rocksdb/rocksdbjni "5.8.0"]
                  [clojure-future-spec "1.9.0-alpha17"]
                  [ch.qos.logback/logback-classic "1.2.3"]
                  [spootnik/signal "0.2.1"]
