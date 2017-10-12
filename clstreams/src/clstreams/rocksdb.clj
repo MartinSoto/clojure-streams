@@ -3,7 +3,7 @@
            org.rocksdb.RocksDB)
   (:require [clojure.java.io :as io]))
 
-(defn create-db [dir]
+(defn open-db [dir]
   (let [options (Options.)]
     (.setCreateIfMissing options true)
     (io/make-parents dir)

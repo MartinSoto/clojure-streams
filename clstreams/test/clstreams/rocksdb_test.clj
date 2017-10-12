@@ -21,10 +21,10 @@
 
 (deftest rocksdb-open-test
   (testing "can open a rocksdb DB"
-    (with-open [db (sut/create-db db-dir)]
+    (with-open [db (sut/open-db db-dir)]
       (is (instance? Object db))))
   (testing "can write and read from a DB"
-    (with-open [db (sut/create-db db-dir)]
+    (with-open [db (sut/open-db db-dir)]
       (let [key "zeKey"
             value "ze value"]
         (.put db (.getBytes key) (.getBytes value))
@@ -32,7 +32,7 @@
   (testing "can read from an existing DB"
     (let [key "zeKey"
           value "ze value"]
-      (with-open [db (sut/create-db db-dir)]
+      (with-open [db (sut/open-db db-dir)]
         (.put db (.getBytes key) (.getBytes value)))
-      (with-open [db (sut/create-db db-dir)]
+      (with-open [db (sut/open-db db-dir)]
         (is (= (String. (.get db (.getBytes key))) value))))))
