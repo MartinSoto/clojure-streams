@@ -1,16 +1,25 @@
 (ns clstreams.rocksdb-test
   (:require [clstreams.rocksdb :as sut]
-            [clojure.test :refer :all]))
+            [clojure.test :refer :all]
+            [clojure.java.io :as io]))
 
-(defn delete-recursively [fname]
-  (let [file (clojure.java.io/file fname)]
-    (if (.exists (clojure.java.io/as-file file))
-      (doseq [f (reverse (file-seq file))]
-        (clojure.java.io/delete-file f)))))
+(def db-dir "/tmp/ddeDB/somedb")
+(def db-dir-file (io/file db-dir))
+
+(defn delete-recursively [file]
+  (if (.exists file)
+    (doseq [f (reverse (file-seq file))]
+      (io/delete-file f))))
+
+(defn clean-db-fixture [run-test]
+  (let [base-dir-file (.getParentFile db-dir-file)]
+    (delete-recursively base-dir-file)
+    (run-test)
+    (delete-recursively base-dir-file)))
+
+(use-fixtures :each clean-db-fixture)
 
 (deftest rocksdb-open-test
   (testing "can open a rocksdb DB"
-    (delete-recursively "/tmp/ddeDB")
-    (with-open [db (sut/create-db "/tmp/ddeDB/somedb")]
-      (is (instance? Object db)))
-    (delete-recursively "/tmp/ddeDB")))
+    (with-open [db (sut/create-db db-dir)]
+      (is (instance? Object db)))))
