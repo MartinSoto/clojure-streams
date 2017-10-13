@@ -29,9 +29,13 @@
       (process driver "input" msgs)
       (read-output driver "output")))
 
-(deftest test-kstreams-copy-topology
+(deftest test-word-count-topology
   (let [builder (sut/build-word-count-topology)
-        msgs [["kkqq" "yeah"]
-              ["qqkk" "nop!"]]]
-    (is (= (through-kstreams-topology builder msgs) msgs))))
+        msgs [["" "these  are"]
+              ["" " some words"]]
+        expected [["these" "these"]
+                  ["are" "are"]
+                  ["some" "some"]
+                  ["words" "words"]]]
+    (is (= (through-kstreams-topology builder msgs) expected))))
 
