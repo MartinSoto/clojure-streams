@@ -7,7 +7,11 @@
   (:import org.apache.kafka.common.serialization.Serdes
            org.apache.kafka.streams.kstream.KStreamBuilder
            org.apache.kafka.streams.StreamsConfig
-           org.apache.kafka.test.ProcessorTopologyTestDriver))
+           org.apache.kafka.test.ProcessorTopologyTestDriver
+           org.apache.kafka.streams.processor.Processor
+           org.apache.kafka.streams.processor.TopologyBuilder
+           org.apache.kafka.streams.processor.TopologyBuilder))
+
 
 (defn test-driver
   ([^KStreamBuilder builder ^StreamsConfig props]
@@ -28,6 +32,52 @@
   (let [driver (test-driver builder)]
       (process driver "input" msgs)
       (read-output driver "output")))
+
+(defn single-processor-topology [^Processor processor]
+  (let [builder (TopologyBuilder.)]
+    (.addSource builder "src1" (into-array String '("input")))
+    (.addProcessor builder "prc1" processor (into-array String '("src1")))
+    (.addSink builder "snk1" "output" (into-array String '("prc1")))
+    builder))
+
+(defn through-kstreams-processor [^Processor processor msgs]
+  (through-kstreams-topology (single-processor-topology processor) msgs))
+
+
+(deftest test-transducing-processor
+  (let [data [["a" "1"] ["b" "2"] ["c" "3"]]]
+    (is (= (through-kstreams-processor
+            (sut/transducing-processor
+             identity)
+            data)
+           data))
+    (is (= (through-kstreams-processor
+            (sut/transducing-processor
+             (map (fn [[key value]] [value key])))
+            data)
+           [["1" "a"] ["2" "b"] ["3" "c"]]))
+    (is (= (through-kstreams-processor
+            (sut/transducing-processor
+             (map (fn [[key value]] [value key]))
+             (filter (fn [[key value]] (odd? (Integer. key)))))
+            data)
+           [["1" "a"] ["3" "c"]]))))
+
+
+(deftest test-xform-values
+  (let [data [[:a 1] [:b 2] [:c 3]]]
+    (testing "applied to identity results in identity transform"
+      (is (= (transduce (sut/xform-values identity) conj data) data)))
+    (testing "map affects only keys"
+      (is (= (transduce (sut/xform-values (map inc)) conj data)
+             [[:a 2] [:b 3] [:c 4]])))
+    (testing "composes several transforms"
+      (is (= (transduce (sut/xform-values (map inc) (map str)) conj data)
+             [[:a "2"] [:b "3"] [:c "4"]])))
+    (testing "can produce zero or several results per key"
+      (is (= (transduce (sut/xform-values (map dec) (mapcat range)) conj data)
+             [[:b 0] [:c 0] [:c 1]])))))
+
 
 (deftest test-word-count-topology
   (let [builder (sut/build-word-count-topology)
