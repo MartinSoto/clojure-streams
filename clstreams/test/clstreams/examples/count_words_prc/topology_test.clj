@@ -29,9 +29,9 @@
     (lazy-seq (cons [(.key record) (.value record)] (read-output driver topic)))))
 
 (defn through-kstreams-topology [^KStreamBuilder builder msgs]
-  (let [driver (test-driver builder)]
-      (process driver "input" msgs)
-      (read-output driver "output")))
+  (with-open [driver (test-driver builder)]
+    (process driver "input" msgs)
+    (read-output driver "output")))
 
 (defn single-processor-topology [^Processor processor]
   (let [builder (TopologyBuilder.)]

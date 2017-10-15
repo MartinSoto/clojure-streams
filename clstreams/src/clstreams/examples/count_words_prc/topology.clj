@@ -13,12 +13,13 @@
   (init [this ctx]
     (set! context ctx))
 
-  (process [this key value] nil
+  (process [this key value]
     (reducer context [key value]))
 
   (punctuate [this timestamp] nil)
 
-  (close [this] nil))
+  (close [this]
+    (reducer context)))
 
 (defn forward-reducer
   ([] nil)
