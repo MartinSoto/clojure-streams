@@ -28,10 +28,14 @@
                                string-deserializer string-deserializer)]
     (lazy-seq (cons [(.key record) (.value record)] (read-output driver topic)))))
 
-(defn through-kstreams-topology [^KStreamBuilder builder msgs]
-  (with-open [driver (test-driver builder)]
-    (process driver "input" msgs)
-    (read-output driver "output")))
+(defn through-kstreams-topology
+  ([^KStreamBuilder builder msgs]
+   (through-kstreams-topology builder msgs "input" "output"))
+  ([^KStreamBuilder builder msgs input-topic output-topic]
+   (with-open [driver (test-driver builder)]
+     (process driver input-topic msgs)
+     (read-output driver output-topic))))
+
 
 (defn single-processor-topology [^Processor processor]
   (let [builder (TopologyBuilder.)]
