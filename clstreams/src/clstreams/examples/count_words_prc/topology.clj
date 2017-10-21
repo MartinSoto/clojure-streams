@@ -1,6 +1,8 @@
 (ns clstreams.examples.count-words-prc.topology
   (:require [clojure.string :as str])
-  (:import [org.apache.kafka.streams.processor Processor ProcessorSupplier TopologyBuilder]))
+  (:import [org.apache.kafka.streams.processor Processor
+            ProcessorSupplier StateStore StateStoreSupplier
+            TopologyBuilder]))
 
 
 (defn show [msg] (fn [tr] (fn [& args] (apply prn msg args) (apply tr args))))
@@ -53,6 +55,47 @@
                 ([result] (rf result))
                 ([result value] (rf result [@current-key value]))))]
       (comp separate-key-xform value-xform remix-key-xform))))
+
+
+(defprotocol StateMap
+  (store-deref [this])
+  (store-swap! [this f]))
+
+(deftype MapStore [^:volatile-mutable context st-name state]
+
+  StateStore
+
+  (init [this ctx root]
+    (set! context ctx))
+
+  (name [this] st-name)
+
+  (isOpen [this] true)
+
+  (persistent [this] false)
+
+  (flush [this] nil)
+
+  (close [this] nil)
+
+
+  StateMap
+
+  (store-deref [this] @state)
+
+  (store-swap! [this f] (swap! state f)))
+
+(defn map-store [st-name]
+  (reify StateStoreSupplier
+
+    (get [this]
+      (->MapStore nil st-name (atom {})))
+
+    (logConfig [this] (java.util.HashMap.))
+
+    (loggingEnabled [this] false)
+
+    (name [this] st-name)))
 
 
 (defn build-word-count-topology []

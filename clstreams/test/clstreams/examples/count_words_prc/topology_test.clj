@@ -68,6 +68,20 @@
            [["1" "a"] ["3" "c"]]))))
 
 
+(deftest test-map-store
+  (let [st-name "zeName"
+        make-store (fn [] (.get (sut/map-store st-name)))]
+    (is (= (.name (make-store)) st-name))
+    (is (= (sut/store-deref (make-store)) {}))
+    (let [store (make-store)]
+      (sut/store-swap! store (fn [st] (assoc st :a 42)))
+      (is (= (sut/store-deref store) {:a 42})))
+    (let [store (make-store)]
+      (sut/store-swap! store (fn [st] (assoc st :a 42)))
+      (sut/store-swap! store (fn [st] (assoc st :b 75)))
+      (is (= (sut/store-deref store) {:a 42 :b 75})))))
+
+
 (deftest test-xform-values
   (let [data [[:a 1] [:b 2] [:c 3]]]
     (testing "applied to identity results in identity transform"
