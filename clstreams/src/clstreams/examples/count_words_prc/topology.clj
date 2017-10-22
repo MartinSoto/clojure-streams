@@ -7,21 +7,29 @@
 
 (defn show [msg] (fn [tr] (fn [& args] (apply prn msg args) (apply tr args))))
 
-
-(deftype TransducingProcessor [^:volatile-mutable context reducer]
+(deftype TransducingProcessor [init-reducer-fn init-state-fn
+                               ^:volatile-mutable reducer
+                               ^:volatile-mutable state]
 
   Processor
 
   (init [this ctx]
-    (set! context ctx))
+    (set! reducer (init-reducer-fn ctx))
+    (set! state (init-state-fn ctx)))
 
   (process [this key value]
-    (reducer context [key value]))
+    (set! state (reducer state [key value])))
 
   (punctuate [this timestamp] nil)
 
   (close [this]
-    (reducer context)))
+    (reducer state)))
+
+(defn transducing-processor
+  ([init-reducer-fn init-state-fn]
+   (reify
+     ProcessorSupplier
+     (get [this] (->TransducingProcessor init-reducer-fn init-state-fn nil nil)))))
 
 (defn forward-reducer
   ([] nil)
@@ -30,13 +38,13 @@
    (.forward context key value)
    context))
 
-(defn transducing-processor
+(defn key-value-processor
   ([xform]
-   (reify
-     ProcessorSupplier
-     (get [this] (->TransducingProcessor nil (xform forward-reducer)))))
+   (transducing-processor
+    (fn [context] (xform forward-reducer))
+    identity))
   ([xform1 xform2 & xforms]
-   (transducing-processor (apply comp xform1 xform2 xforms))))
+   (key-value-processor (apply comp xform1 xform2 xforms))))
 
 
 (defn xform-values [xform & xforms]
@@ -102,7 +110,7 @@
   (let [builder (TopologyBuilder.)]
     (.addSource builder "src1" (into-array String '("input")))
     (.addProcessor builder "prc1"
-                   (transducing-processor
+                   (key-value-processor
                     (xform-values
                      (mapcat #(str/split % #"\W+"))
                      (filter #(> (count %) 0))
