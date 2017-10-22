@@ -66,10 +66,13 @@
 
 
 (defprotocol StateMap
-  (store-deref [this])
-  (store-swap! [this f]))
+  (store-get [this key])
+  (store-keys [this])
+  (store-assoc! [this key value])
+  (store-update! [this key update-fn])
+  (store-dissoc! [this key]))
 
-(deftype MapStore [^:volatile-mutable context st-name state]
+(deftype MapStore [^:volatile-mutable context st-name data]
 
   StateStore
 
@@ -89,9 +92,15 @@
 
   StateMap
 
-  (store-deref [this] @state)
+  (store-get [this key] (get @data key))
 
-  (store-swap! [this f] (swap! state f)))
+  (store-keys [this] (keys @data))
+
+  (store-assoc! [this key value] (swap! data assoc key value) this)
+
+  (store-update! [this key update-fn] (swap! data update key update-fn) this)
+
+  (store-dissoc! [this key] (swap! data dissoc key) this))
 
 (defn map-store [st-name]
   (reify StateStoreSupplier

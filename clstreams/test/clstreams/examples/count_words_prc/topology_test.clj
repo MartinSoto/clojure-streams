@@ -110,14 +110,20 @@
   (let [st-name "zeName"
         make-store (fn [] (.get (sut/map-store st-name)))]
     (is (= (.name (make-store)) st-name))
-    (is (= (sut/store-deref (make-store)) {}))
+    (is (= (into #{} (sut/store-keys (make-store))) #{}))
     (let [store (make-store)]
-      (sut/store-swap! store (fn [st] (assoc st :a 42)))
-      (is (= (sut/store-deref store) {:a 42})))
+      (is (= (sut/store-assoc! store :a 42) store))
+      (is (= (sut/store-get store :a) 42))
+      (is (= (into #{} (sut/store-keys store)) #{:a}))
+      (sut/store-assoc! store :b 75)
+      (is (= (into #{} (sut/store-keys store)) #{:a :b}))
+      (is (= (sut/store-dissoc! store :a) store))
+      (is (= (into #{} (sut/store-keys store)) #{:b}))
+      (is (= (sut/store-get store :b) 75)))
     (let [store (make-store)]
-      (sut/store-swap! store (fn [st] (assoc st :a 42)))
-      (sut/store-swap! store (fn [st] (assoc st :b 75)))
-      (is (= (sut/store-deref store) {:a 42 :b 75})))))
+      (sut/store-assoc! store :a 42)
+      (is (= (sut/store-update! store :a (fn [v] (* v 2))) store))
+      (is (= (sut/store-get store :a) 84)))))
 
 
 (deftest test-xform-values
