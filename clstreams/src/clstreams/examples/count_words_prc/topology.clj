@@ -127,38 +127,37 @@
 
 (defn build-word-count-topology []
   (-> (TopologyBuilder.)
-    (.addSource "src1" (into-array String '("input")))
-    (.addProcessor "prc1"
-                   (key-value-processor
-                    (xform-values
-                     (mapcat #(str/split % #"\W+"))
-                     (filter #(> (count %) 0))
-                     (map str/lower-case))
-                    (map (fn [[key value]] [value value])))
-                   (into-array String '("src1")))
-    (.addSink "snk1" "words" (into-array String '("prc1")))
+      (.addSource "src1" (into-array String '("input")))
+      (.addProcessor "prc1"
+                     (key-value-processor
+                      (xform-values
+                       (mapcat #(str/split % #"\W+"))
+                       (filter #(> (count %) 0))
+                       (map str/lower-case))
+                      (map (fn [[key value]] [value value])))
+                     (into-array String '("src1")))
+      (.addSink "snk1" "words" (into-array String '("prc1")))
 
-    (.addSource "src2" (into-array String '("words")))
-    (.addStateStore
-     (map-store "counts")
-     ;(make-counts-store)
-     (into-array String '()))
-    (.addProcessor "prc2"
-                   (transducing-processor
-                    (fn [context]
-                      (completing
-                       (fn [store-name [key value]]
-                         (let [store (.getStateStore context "counts")]
+      (.addSource "src2" (into-array String '("words")))
+      (.addStateStore
+       (map-store "counts")
+       ;(make-counts-store)
+       (into-array String '()))
+      (.addProcessor "prc2"
+                     (transducing-processor
+                      (fn [context]
+                        (completing
+                         (fn [store [key value]]
                            (store-update! store key
                                           (fn [value]
                                             (if (nil? value) 1 (inc value))))
                            (.forward context key
-                                     (str (store-get store key))))
-                         store-name)))
-                    (fn [context] "counts"))
-                   (into-array String '("src2")))
-    (.connectProcessorAndStateStores "prc2" (into-array String '("counts")))
-    (.addSink "snk2" "output" (into-array String '("prc2")))))
+                                     (str (store-get store key)))
+                           store)))
+                      (fn [context] (.getStateStore context "counts")))
+                     (into-array String '("src2")))
+      (.connectProcessorAndStateStores "prc2" (into-array String '("counts")))
+      (.addSink "snk2" "output" (into-array String '("prc2")))))
 
 ;; (println "Collector!!!" (.recordCollector ctx))
 
