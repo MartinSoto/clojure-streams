@@ -109,6 +109,7 @@
 (deftest test-map-store
   (let [st-name "zeName"
         make-store (fn [] (.get (sut/map-store st-name)))]
+    (is (= (.name (sut/map-store st-name)) st-name))
     (is (= (.name (make-store)) st-name))
     (is (= (into #{} (sut/store-keys (make-store))) #{}))
     (let [store (make-store)]
@@ -149,5 +150,15 @@
                   ["are" "are"]
                   ["some" "some"]
                   ["words" "words"]]]
-    (is (= (through-kstreams-topology builder msgs) expected))))
+    (is (= (through-kstreams-topology builder msgs "input" "words") expected)))
+  (let [builder (sut/build-word-count-topology)
+        msgs [["" "these  are some words "]
+              ["" "These are some more"]]
+        expected {"these" "2"
+                  "are" "2"
+                  "some" "2"
+                  "words" "1"
+                  "more" "1"}]
+    (is (= (into { } (through-kstreams-topology builder msgs "input" "output"))
+           expected))))
 
