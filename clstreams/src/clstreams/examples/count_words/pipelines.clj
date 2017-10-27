@@ -30,18 +30,6 @@
 
 (s/check-asserts true)
 
-(def count-words-landscape
-  {::lsc/streams
-   {::text-input {::lsc/topic-name "file-input"
-                  ::lsc/type ::lsc/stream
-                  ::lsc/values {::lsc/serde (Serdes/String)}}
-    ::word-counts {::lsc/topic-name "wordcount-output"
-                   ::lsc/type ::lsc/table
-                   ::lsc/keys {::lsc/serde (Serdes/String)}
-                   ::lsc/values {::lsc/serde (Serdes/Long)}}}})
-
-(s/assert ::lsc/landscape count-words-landscape)
-
 ;; (def count-words-processor
 ;;   [{::st/op ::st/from
 ;;     ::st/topic :file-input}

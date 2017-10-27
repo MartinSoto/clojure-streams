@@ -9,11 +9,11 @@
 
 (s/def ::value-spec (s/keys :req [::serde]))
 
-(s/def ::type #{::stream ::table})
+(s/def ::type #{:stream :table})
 (s/def ::keys ::value-spec)
 (s/def ::values ::value-spec)
 
-(s/def ::stream (s/keys :req [::type ::topic-name] :opt [::keys ::values]))
+(s/def ::stream (s/keys :req [::type ::topic-name ::keys ::values]))
 
 (s/def ::streams (s/map-of keyword? ::stream))
 
