@@ -2,8 +2,11 @@
   (:require [clojure.spec.alpha :as s])
   (:import org.apache.kafka.common.serialization.Serde))
 
-;; TODO: Use a proper Kafka topic-name regex.
-(s/def ::topic-name string?)
+; https://stackoverflow.com/questions/37062904/what-are-apache-kafka-topic-name-limitations
+(def kafka-topic-regex #"^[a-zA-Z0-9\\._\\-]+")
+(s/def ::topic-name (s/and string?
+                           #(re-matches kafka-topic-regex %)
+                           #(<= (count %) 249)))
 
 (s/def ::serde (partial instance? Serde))
 
