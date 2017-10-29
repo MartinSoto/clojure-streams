@@ -1,5 +1,6 @@
 (ns clstreams.examples.count-words-prc.topology
-  (:require [clojure.string :as str])
+  (:require [clojure.string :as str]
+            [clstreams.landscape :as ldsc])
   (:import [org.apache.kafka.streams.processor Processor
             ProcessorSupplier StateStore StateStoreSupplier
             TopologyBuilder]
@@ -124,6 +125,22 @@
     (.withValues (Serdes/Long))
     (.persistent)
     (.build)))
+
+
+(def word-counts-landscape
+  {::ldsc/streams
+   {:input {::ldsc/topic-name "input"
+            ::ldsc/type :stream
+            ::ldsc/keys {::ldsc/serde (Serdes/String)}
+            ::ldsc/values {::ldsc/serde (Serdes/String)}}
+    :words {::ldsc/topic-name "words"
+            ::ldsc/type :stream
+            ::ldsc/keys {::ldsc/serde (Serdes/String)}
+            ::ldsc/values {::ldsc/serde (Serdes/Long)}}
+    :output {::ldsc/topic-name "output"
+             ::ldsc/type :table
+             ::ldsc/keys {::ldsc/serde (Serdes/String)}
+             ::ldsc/values {::ldsc/serde (Serdes/Long)}}}})
 
 (defn build-word-count-topology []
   (-> (TopologyBuilder.)

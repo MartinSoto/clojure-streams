@@ -1,5 +1,6 @@
 (ns clstreams.examples.count-words-prc.topology-test
-  (:require [clstreams.examples.count-words-prc.topology :as sut]
+  (:require [clstreams.landscape :as ldsc]
+            [clstreams.examples.count-words-prc.topology :as sut]
             [clojure.test :refer :all]
             [clstreams.testutil.kstreams
              :refer
@@ -12,30 +13,51 @@
            org.apache.kafka.streams.processor.TopologyBuilder
            org.apache.kafka.streams.processor.TopologyBuilder))
 
+(defrecord TopologyTestDriver [landscape ^ProcessorTopologyTestDriver driver]
+
+  java.io.Closeable
+
+  (close [this] (.close driver)))
 
 (defn test-driver
-  ([^KStreamBuilder builder ^StreamsConfig props]
-   (ProcessorTopologyTestDriver. props builder))
-  ([^KStreamBuilder builder]
-   (test-driver builder (default-props))))
+  ([landscape ^KStreamBuilder builder ^StreamsConfig props]
+   (->TopologyTestDriver landscape
+                         (ProcessorTopologyTestDriver. props builder)))
+  ([landscape ^KStreamBuilder builder]
+   (test-driver landscape builder (default-props))))
 
 (defn process [^ProcessorTopologyTestDriver driver topic msgs]
-  (doseq [[key value] msgs]
-    (.process driver topic key value string-serializer string-serializer)))
+  (let [{drv :driver landscape :landscape} driver
+        topic-name (get-in landscape [::ldsc/streams topic ::ldsc/topic-name])]
+    (doseq [[key value] msgs]
+      (.process drv topic-name key value string-serializer string-serializer))))
 
 (defn read-output [^ProcessorTopologyTestDriver driver topic]
-  (if-let [record (.readOutput driver topic
-                               string-deserializer string-deserializer)]
-    (lazy-seq (cons [(.key record) (.value record)] (read-output driver topic)))))
+  (let [{drv :driver landscape :landscape} driver
+        topic-name (get-in landscape [::ldsc/streams topic ::ldsc/topic-name])]
+    (if-let [record (.readOutput drv topic-name
+                                 string-deserializer string-deserializer)]
+      (lazy-seq (cons [(.key record) (.value record)] (read-output driver topic))))))
 
 (defn through-kstreams-topology
-  ([^KStreamBuilder builder msgs]
-   (through-kstreams-topology builder msgs "input" "output"))
-  ([^KStreamBuilder builder msgs input-topic output-topic]
-   (with-open [driver (test-driver builder)]
+  ([landscape ^KStreamBuilder builder msgs]
+   (through-kstreams-topology landscape builder :input :output msgs))
+  ([landscape ^KStreamBuilder builder input-topic output-topic msgs]
+   (with-open [driver (test-driver landscape builder)]
      (process driver input-topic msgs)
      (read-output driver output-topic))))
 
+
+(def single-processor-landscape
+  {::ldsc/streams
+   {:input {::ldsc/topic-name "input"
+            ::ldsc/type :stream
+            ::ldsc/keys {::ldsc/serde (Serdes/String)}
+            ::ldsc/values {::ldsc/serde (Serdes/String)}}
+    :output {::ldsc/topic-name "output"
+             ::ldsc/type :stream
+             ::ldsc/keys {::ldsc/serde (Serdes/String)}
+             ::ldsc/values {::ldsc/serde (Serdes/String)}}}})
 
 (defn single-processor-topology [^Processor processor]
   (let [builder (TopologyBuilder.)]
@@ -45,7 +67,8 @@
     builder))
 
 (defn through-kstreams-processor [^Processor processor msgs]
-  (through-kstreams-topology (single-processor-topology processor) msgs))
+  (through-kstreams-topology single-processor-landscape
+                             (single-processor-topology processor) msgs))
 
 
 (deftest test-transducing-processor
@@ -150,8 +173,9 @@
                   ["are" "are"]
                   ["some" "some"]
                   ["words" "words"]]]
-    (is (= (through-kstreams-topology builder msgs "input" "words") expected)))
-  (let [builder (sut/build-word-count-topology)
+    (is (= (through-kstreams-topology sut/word-counts-landscape
+                                      builder :input :words msgs) expected)))
+  (let [builder (sut/build-word-count-ttopology)
         msgs [["" "these  are some words "]
               ["" "These are some more"]]
         expected {"these" "2"
@@ -159,6 +183,7 @@
                   "some" "2"
                   "words" "1"
                   "more" "1"}]
-    (is (= (into { } (through-kstreams-topology builder msgs "input" "output"))
+    (is (= (into { } (through-kstreams-topology sut/word-counts-landscape
+                                                builder :input :output msgs))
            expected))))
 
