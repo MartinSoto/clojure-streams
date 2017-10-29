@@ -2,7 +2,9 @@
   (:require [clstreams.landscape :as sut]
             [clojure.test :refer :all]
             [clojure.spec.alpha :as s])
-  (:import org.apache.kafka.common.serialization.Serdes))
+  (:import [org.apache.kafka.common.serialization Serdes
+            StringSerializer StringDeserializer
+            LongSerializer LongDeserializer]))
 
 (deftest topic-name-test
   (is (s/valid? ::sut/topic-name "this-is-ze_topic."))
@@ -21,3 +23,13 @@
 
 (deftest schema-test
   (is (s/valid? ::sut/landscape count-words-landscape)))
+
+(deftest test-serde-getters
+  (is (instance? StringSerializer
+                 (sut/key-serializer count-words-landscape :text-input)))
+  (is (instance? StringDeserializer
+                 (sut/key-deserializer count-words-landscape :text-input)))
+  (is (instance? LongDeserializer
+                 (sut/value-deserializer count-words-landscape :word-counts)))
+  (is (instance? LongDeserializer
+                 (sut/value-deserializer count-words-landscape :word-counts))))

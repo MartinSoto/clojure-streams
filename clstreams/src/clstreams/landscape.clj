@@ -21,3 +21,16 @@
 (s/def ::streams (s/map-of keyword? ::stream))
 
 (s/def ::landscape (s/keys :req [::streams]))
+
+
+(defn key-serializer [landscape topic]
+  (.serializer (get-in landscape [::streams topic ::keys ::serde])))
+
+(defn key-deserializer [landscape topic]
+  (.deserializer (get-in landscape [::streams topic ::keys ::serde])))
+
+(defn value-serializer [landscape topic]
+  (.serializer (get-in landscape [::streams topic ::values ::serde])))
+
+(defn value-deserializer [landscape topic]
+  (.deserializer (get-in landscape [::streams topic ::values ::serde])))
