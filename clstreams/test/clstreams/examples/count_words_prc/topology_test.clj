@@ -21,7 +21,7 @@
                   "some" "2"
                   "words" "1"
                   "more" "1"}]
-    (is (= (into { } (through-kstreams-topology sut/word-counts-landscape
-                                                builder :input :output msgs))
+    (is (= (into {} (through-kstreams-topology sut/word-counts-landscape
+                                               builder :input :output msgs))
            expected))))
 
