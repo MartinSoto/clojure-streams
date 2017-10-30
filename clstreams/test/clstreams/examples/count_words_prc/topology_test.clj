@@ -175,7 +175,7 @@
                   ["words" "words"]]]
     (is (= (through-kstreams-topology sut/word-counts-landscape
                                       builder :input :words msgs) expected)))
-  (let [builder (sut/build-word-count-ttopology)
+  (let [builder (sut/build-word-count-topology)
         msgs [["" "these  are some words "]
               ["" "These are some more"]]
         expected {"these" "2"
