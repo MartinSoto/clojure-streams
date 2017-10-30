@@ -1,9 +1,7 @@
 (ns clstreams.topology-test
   (:require [clojure.test :refer :all]
             [clstreams.landscape :as ldsc]
-            [clstreams.testutil.kstreams
-             :refer
-             [default-props string-deserializer string-serializer]]
+            [clstreams.testutil.kstreams :refer [default-props]]
             [clstreams.topology :as sut])
   (:import org.apache.kafka.common.serialization.Serdes
            org.apache.kafka.streams.kstream.KStreamBuilder
@@ -25,15 +23,19 @@
 
 (defn process [^ProcessorTopologyTestDriver driver topic msgs]
   (let [{drv :driver landscape :landscape} driver
-        topic-name (get-in landscape [::ldsc/streams topic ::ldsc/topic-name])]
+        topic-name (get-in landscape [::ldsc/streams topic ::ldsc/topic-name])
+        key-serializer (ldsc/key-serializer landscape topic)
+        value-serializer (ldsc/value-serializer landscape topic)]
     (doseq [[key value] msgs]
-      (.process drv topic-name key value string-serializer string-serializer))))
+      (.process drv topic-name key value key-serializer value-serializer))))
 
 (defn read-output [^ProcessorTopologyTestDriver driver topic]
   (let [{drv :driver landscape :landscape} driver
-        topic-name (get-in landscape [::ldsc/streams topic ::ldsc/topic-name])]
+        topic-name (get-in landscape [::ldsc/streams topic ::ldsc/topic-name])
+        key-deserializer (ldsc/key-deserializer landscape topic)
+        value-deserializer (ldsc/value-deserializer landscape topic)]
     (if-let [record (.readOutput drv topic-name
-                                 string-deserializer string-deserializer)]
+                                 key-deserializer value-deserializer)]
       (lazy-seq (cons [(.key record) (.value record)] (read-output driver topic))))))
 
 (defn through-kstreams-topology

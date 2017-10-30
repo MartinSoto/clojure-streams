@@ -1,10 +1,10 @@
 (ns clstreams.examples.count-words-prc.topology
   (:require [clojure.string :as str]
             [clstreams.landscape :as ldsc]
+            [clstreams.store :refer :all]
             [clstreams.topology
              :refer
-             [key-value-processor transducing-processor xform-values]]
-            [clstreams.store :refer :all])
+             [key-value-processor transducing-processor xform-values]])
   (:import org.apache.kafka.common.serialization.Serdes
            org.apache.kafka.streams.processor.TopologyBuilder
            org.apache.kafka.streams.state.Stores))
@@ -29,11 +29,11 @@
     :words {::ldsc/topic-name "words"
             ::ldsc/type :stream
             ::ldsc/keys {::ldsc/serde (Serdes/String)}
-            ::ldsc/values {::ldsc/serde (Serdes/Long)}}
+            ::ldsc/values {::ldsc/serde (Serdes/String)}}
     :output {::ldsc/topic-name "output"
              ::ldsc/type :table
              ::ldsc/keys {::ldsc/serde (Serdes/String)}
-             ::ldsc/values {::ldsc/serde (Serdes/Long)}}}})
+             ::ldsc/values {::ldsc/serde (Serdes/String)}}}})
 
 (defn build-word-count-topology []
   (-> (TopologyBuilder.)
