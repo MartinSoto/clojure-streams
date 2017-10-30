@@ -5,8 +5,7 @@
             [clstreams.testutil.mockito :as mkto])
   (:import [org.apache.kafka.clients.producer KafkaProducer ProducerRecord]
            org.apache.kafka.streams.KafkaStreams
-           org.apache.kafka.streams.kstream.KStreamBuilder
-           org.mockito.Mockito))
+           org.apache.kafka.streams.kstream.KStreamBuilder))
 
 (def fake-config {"ze.config.option" "ze config value"})
 

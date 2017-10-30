@@ -31,6 +31,8 @@
   ([mock-fn-expr parameter-expr-list counting-predicate-expr]
    `(verify-> ~mock-fn-expr (.invoke ~@parameter-expr-list) ~counting-predicate-expr)))
 
+(defn any [] (Mockito/any))
+
 (defn times [n] (Mockito/times n))
 (defn at-least-once [] (Mockito/atLeastOnce))
 (defn at-least [n] (Mockito/atLeast n))

@@ -3,8 +3,7 @@
             [clojure.test :refer :all]
             [clstreams.testutil.component :as tu-comp]
             [clstreams.testutil.mockito :as mkto]
-            [clstreams.webapi.component :refer :all])
-  (:import org.mockito.Mockito))
+            [clstreams.webapi.component :refer :all]))
 
 (def app-factory nil)
 
@@ -13,7 +12,7 @@
     (let [config {:host "0.1.2.3" :port 1234}
 
           handler (mkto/mock-fn)
-          app-factory (mkto/on-call (mkto/mock-fn) [(Mockito/any)] handler)
+          app-factory (mkto/on-call (mkto/mock-fn) [(mkto/any)] handler)
 
           server-mock (mkto/mock java.io.Closeable)
           start-server-fn (mkto/on-call (mkto/mock-fn) [handler config] server-mock)]
@@ -43,7 +42,7 @@
     (let [config {:host "0.1.2.3" :port 1234}
 
           handler (mkto/mock-fn)
-          app-factory (mkto/on-call (mkto/mock-fn) [(Mockito/any)] handler)
+          app-factory (mkto/on-call (mkto/mock-fn) [(mkto/any)] handler)
 
           server-mock (mkto/mock java.io.Closeable)
           start-server-fn (mkto/on-call (mkto/mock-fn) [handler config] server-mock)]
