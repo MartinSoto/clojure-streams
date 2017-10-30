@@ -1,10 +1,8 @@
 (ns clstreams.examples.count-words-prc.topology
   (:require [clojure.string :as str]
             [clstreams.landscape :as ldsc]
-            [clstreams.store :refer :all]
-            [clstreams.topology
-             :refer
-             [key-value-processor transducing-processor xform-values]])
+            [clstreams.store :as store]
+            [clstreams.topology :as topology])
   (:import org.apache.kafka.common.serialization.Serdes
            org.apache.kafka.streams.processor.TopologyBuilder
            org.apache.kafka.streams.state.Stores))
@@ -39,8 +37,8 @@
   (-> (TopologyBuilder.)
       (.addSource "src1" (into-array String '("input")))
       (.addProcessor "prc1"
-                     (key-value-processor
-                      (xform-values
+                     (topology/key-value-processor
+                      (topology/xform-values
                        (mapcat #(str/split % #"\W+"))
                        (filter #(> (count %) 0))
                        (map str/lower-case))
@@ -50,19 +48,19 @@
 
       (.addSource "src2" (into-array String '("words")))
       (.addStateStore
-       (map-store "counts")
+       (store/map-store "counts")
        ;(make-counts-store)
        (into-array String '()))
       (.addProcessor "prc2"
-                     (transducing-processor
+                     (topology/transducing-processor
                       (fn [context]
                         (completing
                          (fn [store [key value]]
-                           (store-update! store key
+                           (store/store-update! store key
                                           (fn [value]
                                             (if (nil? value) 1 (inc value))))
                            (.forward context key
-                                     (str (store-get store key)))
+                                     (str (store/store-get store key)))
                            store)))
                       (fn [context] (.getStateStore context "counts")))
                      (into-array String '("src2")))
