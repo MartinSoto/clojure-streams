@@ -30,7 +30,7 @@
                              [org.apache.kafka/kafka-clients "0.11.0.0" :classifier "test"]
                              [org.clojure/java.classpath "0.2.3"]
                              [org.clojure/tools.namespace "0.3.0-alpha3"]
-                             [org.mockito/mockito-core "1.10.19"]]
+                             [org.mockito/mockito-core "2.11.0"]]
               :main ^:skip-aot user}
 
              :uberjar
