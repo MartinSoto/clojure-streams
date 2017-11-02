@@ -1,6 +1,8 @@
 (ns clstreams.examples.count-words-prc.topology
-  (:require [clojure.string :as str]
+  (:require [clojure.spec.alpha :as s]
+            [clojure.string :as str]
             [clstreams.landscape :as ldsc]
+            [clstreams.processor :as prc]
             [clstreams.store :as store]
             [clstreams.topology :as topology])
   (:import org.apache.kafka.common.serialization.Serdes
@@ -69,3 +71,27 @@
 
 ;; (println "Collector!!!" (.recordCollector ctx))
 
+
+(s/check-asserts true)
+
+(def count-words-topology
+  {::prc/landscape count-words-landscape
+   ::prc/nodes
+   {:op01 {::prc/op ::prc/from
+           ::prc/topic :file-input}
+    :op02 {::prc/op ::prc/flat-map-values
+           ::prc/src :op01
+           ::prc/fn #(-> % str/lower-case (str/split #" +"))}
+    :op03 {::prc/op ::prc/map
+           ::prc/src :op02
+           ::prc/fn #(vector %2 %2)}
+    :op04 {::prc/op ::prc/group-by-key
+           ::prc/src :op03}
+    :op05 {::prc/op ::prc/count
+           ::prc/src :op04
+           ::prc/store "Counts"}
+    :op06 {::prc/op ::prc/to
+           ::prc/src :op05
+           ::prc/topic :word-counts}}})
+
+;(s/assert ::prc/topology count-words-service-raw)
