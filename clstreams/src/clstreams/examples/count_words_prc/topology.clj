@@ -20,7 +20,7 @@
     (.build)))
 
 
-(def word-counts-landscape
+(def count-words-landscape
   {::ldsc/streams
    {:input {::ldsc/topic-name "input"
             ::ldsc/type :stream

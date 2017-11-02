@@ -11,7 +11,7 @@
                   ["are" "are"]
                   ["some" "some"]
                   ["words" "words"]]]
-    (is (= (drv/through-kstreams-topology sut/word-counts-landscape
+    (is (= (drv/through-kstreams-topology sut/count-words-landscape
                                       builder :input :words msgs) expected)))
   (let [builder (sut/build-word-count-topology)
         msgs [["" "these  are some words "]
@@ -21,7 +21,7 @@
                   "some" "2"
                   "words" "1"
                   "more" "1"}]
-    (is (= (into {} (drv/through-kstreams-topology sut/word-counts-landscape
+    (is (= (into {} (drv/through-kstreams-topology sut/count-words-landscape
                                                builder :input :output msgs))
            expected))))
 
