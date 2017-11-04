@@ -75,23 +75,29 @@
 (s/check-asserts true)
 
 (def count-words-topology
-  {::prc/landscape count-words-landscape
+  {::ldsc/landscape count-words-landscape
    ::prc/nodes
-   {:op01 {::prc/op ::prc/from
-           ::prc/topic :file-input}
-    :op02 {::prc/op ::prc/flat-map-values
-           ::prc/src :op01
-           ::prc/fn #(-> % str/lower-case (str/split #" +"))}
-    :op03 {::prc/op ::prc/map
-           ::prc/src :op02
-           ::prc/fn #(vector %2 %2)}
-    :op04 {::prc/op ::prc/group-by-key
-           ::prc/src :op03}
-    :op05 {::prc/op ::prc/count
-           ::prc/src :op04
-           ::prc/store "Counts"}
-    :op06 {::prc/op ::prc/to
-           ::prc/src :op05
-           ::prc/topic :word-counts}}})
+   {:op1 {::prc/node ::prc/source
+          ::prc/topic :input}
+    :op2 {::prc/node ::prc/transform
+          ::prc/pred :op1
+          ::prc/xform (comp
+                       (mapcat #(str/split % #"\W+"))
+                       (filter #(> (count %) 0))
+                       (map str/lower-case))}
+    :op3 {::prc/node ::prc/transform-pairs
+          ::prc/pred :op2
+          ::prc/xform (map (fn [[key value]] [value value]))}
+    :op4 {::prc/node ::prc/sink
+          ::prc/pred :op3
+          ::prc/topic :words}
 
-;(s/assert ::prc/topology count-words-service-raw)
+    :op5 {::prc/node ::prc/source
+          ::prc/topic :words}
+    :op6 {::prc/node ::prc/reduce
+          ::prc/pred :op5
+          ::prc/initial 0
+          ::prc/fn (fn [count word] (inc count))
+          ::prc/topic :output}}})
+
+(s/assert ::prc/topology count-words-topology)

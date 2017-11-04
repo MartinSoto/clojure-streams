@@ -1,38 +1,37 @@
 (ns clstreams.processor
   (:require [clojure.spec.alpha :as s]
-            [com.rpl.specter :as sp]))
+            [com.rpl.specter :as sp]
+            [clstreams.landscape :as ldsc]))
 
-(s/def ::op #{::count
-              ::flat-map-values
-              ::from
-              ::group-by-key
-              ::map
-              ::to})
+(s/def ::node #{::source
+              ::sink
+              ::transform
+              ::transform-pairs
+              ::reduce})
 
-(s/def ::src keyword?)
-
+(s/def ::pred keyword?)
 (s/def ::topic keyword?)
-;; TODO: Use a proper Kafka Streams store-name regex.
-(s/def ::store string?)
+(s/def ::xform fn?)
+(s/def ::initial (constantly true))
 (s/def ::fn fn?)
 
-(defmulti operation-type ::op)
-(defmethod operation-type ::count [_]
-  (s/keys :req [::op ::src ::store]))
-(defmethod operation-type ::flat-map-values [_]
-  (s/keys :req [::op ::src ::fn]))
-(defmethod operation-type ::from [_]
-  (s/keys :req [::op ::topic]))
-(defmethod operation-type ::group-by-key [_]
-  (s/keys :req [::op ::src]))
-(defmethod operation-type ::map [_]
-  (s/keys :req [::op ::src ::fn]))
-(defmethod operation-type ::to [_]
-  (s/keys :req [::op ::src ::topic]))
+(defmulti operation-type ::node)
+(defmethod operation-type ::source [_]
+  (s/keys :req [::node ::topic]))
+(defmethod operation-type ::sink [_]
+  (s/keys :req [::node ::pred ::topic]))
+(defmethod operation-type ::transform [_]
+  (s/keys :req [::node ::pred ::xform]))
+(defmethod operation-type ::transform-pairs [_]
+  (s/keys :req [::node ::pred ::xform]))
+(defmethod operation-type ::reduce [_]
+  (s/keys :req [::node ::pred ::initial ::fn ::topic]))
 
-(s/def ::operation (s/multi-spec operation-type ::op))
+(s/def ::node-def (s/multi-spec operation-type ::node))
 
-(s/def ::topology (s/map-of keyword? ::operation))
+(s/def ::nodes (s/map-of keyword? ::node-def))
+
+(s/def ::topology (s/keys :req [::ldsc/landscape ::nodes]))
 
 
 (defn topological-order [topology]
