@@ -1,34 +1,47 @@
 (ns clstreams.processor-test
-  (:require [clojure.test :refer :all]
-            [clstreams.processor :as prc]))
+  (:require [clojure.string :as str]
+            [clojure.test :refer :all]
+            [clstreams.processor :as prc]
+            [flatland.ordered.map :refer [ordered-map]]))
 
-(deftest topological-order-test
-  (testing "when an empty topology is provided then nil is returned"
-    (is (= (prc/topological-order {}) nil)))
-  (testing "when only sources are provided then all of them are returned"
-    (let [top1 {:op01 {::prc/op ::prc/from
-                       ::prc/topic :file-input}}
-          top2 (assoc top1
-                      :op02 {::prc/op ::prc/from
-                             ::prc/topic :commands})]
-      (is (= (set (prc/topological-order top1)) (set top1)))
-      (is (= (set (prc/topological-order top2)) (set top2)))))
-  (testing (str "when a linear operation sequence is provided then it "
-                "is returned in the right order")
-    (let [top1 [[:op01 {::prc/op ::prc/from
-                        ::prc/topic :file-input}]
-                [:op02 {::prc/op ::prc/flat-map-values
-                        ::prc/src :op01
-                        ::prc/fn identity}]
-                [:op03 {::prc/op ::prc/map
-                        ::prc/src :op02
-                        ::prc/fn identity}]
-                [:op04 {::prc/op ::prc/group-by-key
-                        ::prc/src :op03}]
-                [:op05 {::prc/op ::prc/count
-                        ::prc/src :op04
-                        ::prc/store "Counts"}]
-                [:op06 {::prc/op ::prc/to
-                        ::prc/src :op05
-                        ::prc/topic :word-counts}]]]
-      (is (= (prc/topological-order (into {} top1)) (seq top1))))))
+(defn verify-topological-order
+  ([ordered] (verify-topological-order #{} ordered))
+  ([seen-ids [node & remaining-ordered]]
+   (if-let [[node-id {preds ::prc/preds}] node]
+     (if-let [not-preceding (seq (remove seen-ids preds))]
+       (format "Node \"%s\" not preceded by expected predecesor(s) \"%s\""
+               node-id (str/join "\", \"" not-preceding))
+       (recur (conj seen-ids node-id) remaining-ordered))
+     nil)))
+
+(deftest verify-topological-order-test
+  (is (nil? (verify-topological-order
+             [[:n1 {}]
+              [:n2 {::prc/preds [:n1]}]])))
+  (is (= (verify-topological-order
+          [[:n1 {}]
+           [:n2 {::prc/preds [:n3 :n1 :n4]}]])
+         "Node \":n2\" not preceded by expected predecesor(s) \":n3\", \":n4\"")))
+
+(defn check-order-nodes [nodes]
+  (let [ordered (prc/order-nodes nodes)
+        msg (verify-topological-order (seq ordered))]
+    (is (= nodes ordered) "same nodes are present in the ordered map")
+    (if msg (is false msg))))
+
+(deftest order-nodes-test
+  (testing "empty topology"
+    (check-order-nodes {}))
+  (testing "only sources"
+    (let [top1 {:op01 {}}
+          top2 (assoc top1 :op02 {})]
+      (check-order-nodes top1)
+      (check-order-nodes top2)))
+  (testing (str "linear processor sequence")
+    (let [top1 {:op01 {}
+                :op02 {::prc/preds [:op01]}
+                :op03 {::prc/preds [:op02]}
+                :op04 {::prc/preds [:op03]}
+                :op05 {::prc/preds [:op04]}
+                :op06 {::prc/preds [:op05]}}]
+      (check-order-nodes top1))))
