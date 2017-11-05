@@ -4,12 +4,12 @@
             [clstreams.landscape :as ldsc]))
 
 (s/def ::node #{::source
-              ::sink
-              ::transform
-              ::transform-pairs
-              ::reduce})
+                ::sink
+                ::transform
+                ::transform-pairs
+                ::reduce})
 
-(s/def ::pred keyword?)
+(s/def ::preds (s/coll-of keyword? :min-count 1))
 (s/def ::topic keyword?)
 (s/def ::xform fn?)
 (s/def ::initial (constantly true))
@@ -19,13 +19,13 @@
 (defmethod operation-type ::source [_]
   (s/keys :req [::node ::topic]))
 (defmethod operation-type ::sink [_]
-  (s/keys :req [::node ::pred ::topic]))
+  (s/keys :req [::node ::preds ::topic]))
 (defmethod operation-type ::transform [_]
-  (s/keys :req [::node ::pred ::xform]))
+  (s/keys :req [::node ::preds ::xform]))
 (defmethod operation-type ::transform-pairs [_]
-  (s/keys :req [::node ::pred ::xform]))
+  (s/keys :req [::node ::preds ::xform]))
 (defmethod operation-type ::reduce [_]
-  (s/keys :req [::node ::pred ::initial ::fn ::topic]))
+  (s/keys :req [::node ::preds ::initial ::fn ::topic]))
 
 (s/def ::node-def (s/multi-spec operation-type ::node))
 
