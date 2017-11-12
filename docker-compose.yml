@@ -37,6 +37,13 @@ services:
         max-size: "512k"
         max-file: "2"
 
+  clojure:
+    build: docker/clojure
+    volumes:
+      - ${PROJECT_DIR}:${PROJECT_DIR}
+      - maven-repo:/var/lib/maven
+    links:
+      - kafka
 
   gradle:
     build: docker/gradle
