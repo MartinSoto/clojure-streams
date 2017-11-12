@@ -14,6 +14,7 @@ setup_user() {
         useradd_params="$useradd_params --uid $USER_UID"
     fi
     if [ ! -z "$USER_GID" ]; then
+        groupadd --force --gid $USER_GID $USER_NAME
         useradd_params="$useradd_params --gid $USER_GID"
     fi
     useradd_params="$useradd_params -m --home-dir $home_base/$USER_NAME $USER_NAME"
