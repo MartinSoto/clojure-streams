@@ -22,8 +22,8 @@
   ([seen-ids [node & remaining-ordered]]
    (if-let [[node-id {preds ::prc/preds}] node]
      (if-let [not-preceding (seq (remove seen-ids preds))]
-       (format "Node \"%s\" not preceded by expected predecesor(s) \"%s\""
-               node-id (str/join "\", \"" not-preceding))
+       (format "Node %s not preceded by expected predecesor(s) %s"
+               node-id (str/join ", " not-preceding))
        (recur (conj seen-ids node-id) remaining-ordered))
      nil)))
 
@@ -34,7 +34,7 @@
   (is (= (verify-topological-order
           [[:n1 {}]
            [:n2 {::prc/preds [:n3 :n1 :n4]}]])
-         "Node \":n2\" not preceded by expected predecesor(s) \":n3\", \":n4\"")))
+         "Node :n2 not preceded by expected predecesor(s) :n3, :n4")))
 
 (defn check-order-nodes [nodes]
   (let [ordered (prc/order-nodes nodes)
@@ -64,6 +64,44 @@
                         :op04 {}
                         :op05 {::prc/preds [:op04]}
                         :op06 {::prc/preds [:op05]}})))
+
+(defn verify-cycle [nodes cycle]
+  (let [broken-links
+        (->> (map vector cycle (concat (rest cycle) [(first cycle)]))
+             (remove (fn [[pred succ]] ((into #{} (::prc/preds (nodes succ))) pred))))]
+    (if-let [[pred succ] (first (seq broken-links))]
+      (format "Node %s is not a succesor of %s in cycle %s" succ pred (into [] cycle)))))
+
+(deftest verify-cycle-test
+  (is (nil? (verify-cycle {:op01 {::prc/preds [:op02]}
+                           :op02 {::prc/preds [:op01]}}
+                          [:op01 :op02])))
+  (is (= (verify-cycle {:op01 {::prc/preds [:op02]}
+                        :op02 {::prc/preds []}}
+                       [:op01 :op02])
+         "Node :op02 is not a succesor of :op01 in cycle [:op01 :op02]")))
+
+(defn check-order-nodes-with-cycle [nodes]
+  (let [{cycle ::prc/cycle} (prc/order-nodes nodes)
+        msg (verify-cycle nodes cycle)]
+    (is cycle "order-nodes didn't find a cycle")
+    (is (not (empty? cycle)) "order-nodes returned an empty cycle")
+    (if msg (is false msg))))
+
+(deftest order-nodes-with-cycle-test
+  (testing "one node pointing to itself"
+    (check-order-nodes-with-cycle {:op01 {::prc/preds [:op01]}}))
+  (testing "two nodes in a cycle"
+    (check-order-nodes-with-cycle {:op01 {::prc/preds [:op02]}
+                                   :op02 {::prc/preds [:op01]}}))
+  (testing "larger cycle"
+    (check-order-nodes-with-cycle {:op01 {::prc/preds [:op03]}
+                                   :op02 {::prc/preds [:op01]}
+                                   :op03 {::prc/preds [:op02]}}))
+  (testing "two nodes in a cycle in a larger graph"
+    (check-order-nodes-with-cycle {:op01 {::prc/preds [:op02]}
+                                   :op02 {::prc/preds [:op01]}
+                                   :op03 {::prc/preds []}})))
 
 (defspec order-nodes-is-topological-prop
   50

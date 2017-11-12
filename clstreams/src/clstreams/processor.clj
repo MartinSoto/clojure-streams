@@ -1,7 +1,8 @@
 (ns clstreams.processor
   (:require [clojure.spec.alpha :as s]
             [clstreams.landscape :as ldsc]
-            [flatland.ordered.map :refer [ordered-map]]))
+            [flatland.ordered.map :refer [ordered-map]]
+            [flatland.ordered.set :refer [ordered-set]]))
 
 (s/def ::node #{::source
                 ::sink
@@ -37,20 +38,25 @@
 (defn- order-from-node [ordered pending visiting node-id]
   (cond
     (ordered node-id) [ordered pending]
-    (visiting node-id) (comment "Error!")
+    (visiting node-id) [::cycle (reverse (drop-while #(not= % node-id) visiting))]
     :else
     (let [{node-pred-ids ::preds :as node-value} (pending node-id)
           visiting (conj visiting node-id)
           pending (dissoc pending node-id)]
-      (let [[ordered pending]
+      (let [[ordered pending :as result]
             (loop [ordered ordered
                    pending pending
                    [pred-id & pred-ids] node-pred-ids]
               (if-not pred-id
                 [ordered pending]
-                (let [[ordered pending] (order-from-node ordered pending visiting pred-id)]
-                  (recur ordered pending pred-ids))))]
-        [(assoc ordered node-id node-value) pending]))))
+                (let [[ordered pending :as result]
+                      (order-from-node ordered pending visiting pred-id)]
+                  (if (= ordered ::cycle)
+                    result
+                    (recur ordered pending pred-ids)))))]
+        (if (= ordered ::cycle)
+          result
+          [(assoc ordered node-id node-value) pending])))))
 
 (defn order-nodes
   ([nodes]
@@ -58,6 +64,8 @@
   ([ordered pending]
    (let [[[node-id _] & _] (seq pending)]
      (if-not node-id
-     ordered
-     (let [[ordered pending] (order-from-node ordered pending #{} node-id)]
-     (recur ordered pending))))))
+       ordered
+       (let [[ordered pending] (order-from-node ordered pending (ordered-set) node-id)]
+         (if (= ordered ::cycle)
+           {::cycle pending}
+           (recur ordered pending)))))))
