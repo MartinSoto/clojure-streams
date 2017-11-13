@@ -57,17 +57,19 @@
          "Node :op02 is not a succesor of :op01 in cycle [:op01 :op02]")))
 
 
-(defn check-order-nodes [nodes]
+(defn verify-order-nodes [nodes]
   (let [ordered (prc/order-nodes nodes)
         {cycle ::prc/cycle} ordered]
     (if cycle
-      (do
-        (let [msg (verify-cycle nodes cycle)] (is (not msg) msg))
-        (is cycle "order-nodes didn't find a cycle")
-        (is (not (empty? cycle)) "order-nodes returned an empty cycle"))
-      (do
-        (let [msg (verify-topological-order (seq ordered))] (is (not msg) msg))
-        (is (= nodes ordered) "same nodes aren't present in the ordered map")))))
+      (or
+       (if (empty? cycle) "order-nodes returned an empty cycle")
+       (verify-cycle nodes cycle))
+      (or
+       (verify-topological-order (seq ordered))
+       (if (not= nodes ordered) "ordered map doesn't contain same nodes as original")))))
+
+(defn check-order-nodes [nodes]
+  (let [msg (verify-order-nodes nodes)] (is (not msg) msg)))
 
 (deftest order-nodes-test
   (testing "empty topology"
@@ -107,15 +109,21 @@
                         :op02 {::prc/preds [:op01]}
                         :op03 {::prc/preds []}})))
 
+(defn- label [n] (keyword (format "op%02d" n)))
+
+(defn gen-graph [size]
+  (into {}
+        (for [i (range size)
+              :let [preds (gen/generate (gen/vector-distinct (gen/elements (range size))))]]
+          [(label i) {::prc/preds (into [] (map label preds))}])))
 
 (defn gen-dag [size]
-  (letfn [(label [n] (keyword (format "op%02d" n)))]
-    (into {}
-          (for [i (range size)
-                :let [preds (if (= i 0)
-                              []
-                              (gen/generate (gen/vector-distinct (gen/elements (range i)))))]]
-            [(label i) {::prc/preds (into [] (map label preds))}]))))
+  (into {}
+        (for [i (range size)
+              :let [preds (if (= i 0)
+                            []
+                            (gen/generate (gen/vector-distinct (gen/elements (range i)))))]]
+          [(label i) {::prc/preds (into [] (map label preds))}])))
 
 (defspec order-nodes-is-topological-prop
   50
@@ -124,3 +132,9 @@
                       msg (verify-topological-order (seq ordered))]
                   (and (= nodes ordered)
                        (nil? msg)))))
+
+(defspec order-nodes-works-or-checks-for-cycles
+  50
+  (prop/for-all [nodes (gen/fmap gen-graph gen/int)]
+                (let [msg (verify-order-nodes nodes)]
+                  (and (nil? msg)))))
