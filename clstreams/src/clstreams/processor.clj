@@ -4,12 +4,7 @@
             [flatland.ordered.map :refer [ordered-map]]
             [flatland.ordered.set :refer [ordered-set]]))
 
-(defn- conform-preds-to-set [preds]
-  (let [value (s/conform (s/coll-of keyword? :min-count 1) preds)]
-    (if (= value ::s/invalid)
-      ::s/invalid
-      (set value))))
-(s/def ::preds (s/conformer conform-preds-to-set))
+(s/def ::preds (s/coll-of keyword? :min-count 1 :into #{}))
 
 (s/def ::graph-node (s/keys :opt [::preds]))
 (s/def ::graph (s/map-of keyword? ::graph-node))
