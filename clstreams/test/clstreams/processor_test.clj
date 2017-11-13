@@ -8,14 +8,6 @@
             [clojure.test.check.properties :as prop]
             [clojure.test.check.clojure-test :refer [defspec]]))
 
-(defn gen-dag [size]
-  (letfn [(label [n] (keyword (format "op%02d" n)))]
-    (into {}
-          (for [i (range size)
-                :let [preds (if (= i 0)
-                              []
-                              (gen/generate (gen/vector-distinct (gen/elements (range i)))))]]
-            [(label i) {::prc/preds (into [] (map label preds))}]))))
 
 (defn verify-topological-order
   ([ordered] (verify-topological-order #{} ordered))
@@ -102,6 +94,15 @@
     (check-order-nodes-with-cycle {:op01 {::prc/preds [:op02]}
                                    :op02 {::prc/preds [:op01]}
                                    :op03 {::prc/preds []}})))
+
+(defn gen-dag [size]
+  (letfn [(label [n] (keyword (format "op%02d" n)))]
+    (into {}
+          (for [i (range size)
+                :let [preds (if (= i 0)
+                              []
+                              (gen/generate (gen/vector-distinct (gen/elements (range i)))))]]
+            [(label i) {::prc/preds (into [] (map label preds))}]))))
 
 (defspec order-nodes-is-topological-prop
   50
