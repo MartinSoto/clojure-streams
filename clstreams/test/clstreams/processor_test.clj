@@ -6,7 +6,18 @@
             [clojure.test.check :as tc]
             [clojure.test.check.generators :as gen]
             [clojure.test.check.properties :as prop]
-            [clojure.test.check.clojure-test :refer [defspec]]))
+            [clojure.test.check.clojure-test :refer [defspec]]
+            [clojure.spec.alpha :as s]))
+
+(deftest conform-predecessors-test
+  (testing "s/conform converts predecessors to a map"
+    (let [input [:op01 :op02]
+          preds (s/conform ::prc/preds input)]
+      (is (set? preds))
+      (is (= preds #{:op02 :op01}))))
+  (testing "invalid collections won't conform"
+    (is (= (s/conform ::prc/preds []) ::s/invalid))
+    (is (= (s/conform ::prc/preds ["op01" "op02"]) ::s/invalid))))
 
 
 (defn verify-topological-order

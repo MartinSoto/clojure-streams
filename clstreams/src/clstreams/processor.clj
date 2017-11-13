@@ -4,13 +4,22 @@
             [flatland.ordered.map :refer [ordered-map]]
             [flatland.ordered.set :refer [ordered-set]]))
 
+(defn- conform-preds-to-set [preds]
+  (let [value (s/conform (s/coll-of keyword? :min-count 1) preds)]
+    (if (= value ::s/invalid)
+      ::s/invalid
+      (set value))))
+(s/def ::preds (s/conformer conform-preds-to-set))
+
+(s/def ::graph-node (s/keys :opt [::preds]))
+(s/def ::graph (s/map-of keyword? ::graph-node))
+
 (s/def ::node #{::source
                 ::sink
                 ::transform
                 ::transform-pairs
                 ::reduce})
 
-(s/def ::preds (s/coll-of keyword? :min-count 1))
 (s/def ::topic keyword?)
 (s/def ::xform fn?)
 (s/def ::initial (constantly true))
@@ -30,7 +39,7 @@
 
 (s/def ::node-def (s/multi-spec operation-type ::node))
 
-(s/def ::nodes (s/map-of keyword? ::node-def))
+(s/def ::nodes (s/and ::graph (s/map-of keyword? ::node-def)))
 
 (s/def ::topology (s/keys :req [::ldsc/landscape ::nodes]))
 
