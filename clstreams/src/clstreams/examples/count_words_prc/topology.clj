@@ -2,9 +2,9 @@
   (:require [clojure.spec.alpha :as s]
             [clojure.string :as str]
             [clstreams.landscape :as ldsc]
-            [clstreams.processor :as prc]
             [clstreams.processor-new :as topology]
-            [clstreams.store :as store])
+            [clstreams.store :as store]
+            [clstreams.topology :as prc])
   (:import org.apache.kafka.common.serialization.Serdes
            org.apache.kafka.streams.processor.TopologyBuilder
            org.apache.kafka.streams.state.Stores))

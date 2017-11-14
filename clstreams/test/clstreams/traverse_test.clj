@@ -1,24 +1,11 @@
-(ns clstreams.processor-test
+(ns clstreams.traverse-test
   (:require [clojure.string :as str]
             [clojure.test :refer :all]
-            [clstreams.processor :as prc]
-            [flatland.ordered.map :refer [ordered-map]]
-            [clojure.test.check :as tc]
+            [clojure.test.check.clojure-test :refer [defspec]]
             [clojure.test.check.generators :as gen]
             [clojure.test.check.properties :as prop]
-            [clojure.test.check.clojure-test :refer [defspec]]
-            [clojure.spec.alpha :as s]))
-
-(deftest conform-predecessors-test
-  (testing "s/conform converts predecessors to a map"
-    (let [input [:op01 :op02]
-          preds (s/conform ::prc/preds input)]
-      (is (set? preds))
-      (is (= preds #{:op02 :op01}))))
-  (testing "invalid collections won't conform"
-    (is (= (s/conform ::prc/preds []) ::s/invalid))
-    (is (= (s/conform ::prc/preds ["op01" "op02"]) ::s/invalid))))
-
+            [clstreams.topology :as prc]
+            [clstreams.traverse :as sut]))
 
 (defn verify-topological-order
   ([ordered] (verify-topological-order #{} ordered))
@@ -58,7 +45,7 @@
 
 
 (defn verify-order-nodes [nodes]
-  (let [ordered (prc/order-nodes nodes)
+  (let [ordered (sut/order-nodes nodes)
         {cycle ::prc/cycle} ordered]
     (if cycle
       (or
@@ -128,7 +115,7 @@
 (defspec order-nodes-is-topological-prop
   50
   (prop/for-all [nodes (gen/fmap gen-dag gen/int)]
-                (let [ordered (prc/order-nodes nodes)
+                (let [ordered (sut/order-nodes nodes)
                       msg (verify-topological-order (seq ordered))]
                   (and (= nodes ordered)
                        (nil? msg)))))
