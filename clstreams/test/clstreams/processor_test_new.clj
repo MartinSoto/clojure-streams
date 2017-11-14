@@ -1,7 +1,7 @@
-(ns clstreams.topology-test
+(ns clstreams.processor-test-new
   (:require [clojure.test :refer :all]
-            [clstreams.testutil.topology-driver :as drv]
-            [clstreams.topology :as sut]))
+            [clstreams.processor-new :as sut]
+            [clstreams.testutil.topology-driver :as drv]))
 
 (comment :update-me deftest test-transducing-processor
   (let [data [["a" "1"] ["b" "2"] ["c" "3"]]]

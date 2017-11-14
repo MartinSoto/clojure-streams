@@ -3,8 +3,8 @@
             [clojure.string :as str]
             [clstreams.landscape :as ldsc]
             [clstreams.processor :as prc]
-            [clstreams.store :as store]
-            [clstreams.topology :as topology])
+            [clstreams.processor-new :as topology]
+            [clstreams.store :as store])
   (:import org.apache.kafka.common.serialization.Serdes
            org.apache.kafka.streams.processor.TopologyBuilder
            org.apache.kafka.streams.state.Stores))
