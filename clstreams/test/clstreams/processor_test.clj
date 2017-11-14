@@ -1,6 +1,6 @@
-(ns clstreams.processor-test-new
+(ns clstreams.processor-test
   (:require [clojure.test :refer :all]
-            [clstreams.processor-new :as sut]
+            [clstreams.processor :as sut]
             [clstreams.testutil.topology-driver :as drv]))
 
 (comment :update-me deftest test-transducing-processor

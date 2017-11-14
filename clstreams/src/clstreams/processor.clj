@@ -1,4 +1,4 @@
-(ns clstreams.processor-new
+(ns clstreams.processor
   (:import [org.apache.kafka.streams.processor Processor ProcessorSupplier]))
 
 (deftype TransducingProcessor [init-reducer-fn init-state-fn

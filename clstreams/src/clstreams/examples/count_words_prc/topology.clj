@@ -2,7 +2,7 @@
   (:require [clojure.spec.alpha :as s]
             [clojure.string :as str]
             [clstreams.landscape :as ldsc]
-            [clstreams.processor-new :as topology]
+            [clstreams.processor :as topology]
             [clstreams.store :as store]
             [clstreams.topology :as prc])
   (:import org.apache.kafka.common.serialization.Serdes
