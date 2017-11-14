@@ -10,7 +10,7 @@
 (def count-words-props
   (assoc default-topology-config StreamsConfig/APPLICATION_ID_CONFIG "streams-wordcount"))
 
-(defn build-count-words []
+(comment :update-me defn build-count-words []
   (let [builder (KStreamBuilder.)]
     (-> builder
         (ks/stream ["streams-file-input"])
@@ -21,7 +21,7 @@
         (ks/to (Serdes/String) (Serdes/Long) "streams-wordcount-output"))
     builder))
 
-(defn count-words []
+(comment :update-me defn count-words []
   (new-topology count-words-props (build-count-words)))
 
 

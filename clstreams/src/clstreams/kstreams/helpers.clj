@@ -40,7 +40,7 @@
                      (apply clansi/style (format "[%s]" topic-name) color-settings)
                      key value))))
 
-(defn new-print-topic
+(comment :update-me defn new-print-topic
   ([topic-name]
    (new-print-topic topic-name {}))
   ([topic-name options]

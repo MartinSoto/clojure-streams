@@ -14,13 +14,13 @@
            org.apache.kafka.streams.kstream.KStreamBuilder
            org.apache.kafka.test.ProcessorTopologyTestDriver))
 
-(defn build-copy
+(comment defn build-copy
   [builder]
   (-> builder
     (.stream (into-array String ["streams-file-input"]))
     (.to (Serdes/String) (Serdes/String) "streams-wordcount-output")))
 
-(deftest test-copy-topology
+(comment deftest test-copy-topology
   (testing "Garbage in, garbage out..."
     (let [builder (KStreamBuilder.)
           _ (build-copy builder)
@@ -32,7 +32,7 @@
         (is (= (.key record) ""))
         (is (= (.value record) "all streams lead to kafka"))))))
 
-(defn build-count-words
+(comment defn build-count-words
   [builder]
   (-> builder
       (ks/stream ["streams-file-input"])
@@ -42,7 +42,7 @@
       (ks/count "Counts")
       (ks/to (Serdes/String) (Serdes/Long) "streams-wordcount-output")))
 
-(deftest test-word-count-topology
+(comment deftest test-word-count-topology
   (testing "Complete table written to output topic"
     (let [builder (KStreamBuilder.)
           _ (build-count-words builder)

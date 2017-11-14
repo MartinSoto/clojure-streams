@@ -41,7 +41,7 @@
 
   (get [this] (->GameCreditsProcessor nil)))
 
-(defn game-credit-builder []
+(comment :update-me defn game-credit-builder []
   (let [builder (KStreamBuilder.)
         states-store (-> (Stores/create states-store-name)
                          (.withKeys (Serdes/String))
@@ -56,6 +56,6 @@
         (ks/to (Serdes/String) (serdes/edn-serde) "game-credits-requests-errors"))
     builder))
 
-(defn game-credits-topology []
+(comment :update-me defn game-credits-topology []
   (new-topology game-credits-props (game-credit-builder)))
 

@@ -6,7 +6,7 @@
             [com.stuartsierra.component :as component])
   (:import org.apache.kafka.common.serialization.Serdes))
 
-(defn game-credits-system []
+(comment :update-me defn game-credits-system []
   (component/system-map
    :producer (helpers/new-manual-producer "game-credits-requests"
                                           {:key-serde (Serdes/String)

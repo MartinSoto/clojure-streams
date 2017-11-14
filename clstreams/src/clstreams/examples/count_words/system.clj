@@ -6,7 +6,7 @@
             [com.stuartsierra.component :as component])
   (:import org.apache.kafka.common.serialization.Serdes))
 
-(defn count-words-system []
+(comment :update-me defn count-words-system []
   (component/system-map
    :producer (helpers/new-manual-producer "streams-file-input")
    :pipeline (pipelines/count-words)
@@ -18,5 +18,5 @@
             (webapi/web-test)
             [:pipeline])))
 
-(defn produce-words [system & lines]
+(comment :update-me defn produce-words [system & lines]
   (apply producer-send! (:producer system) (for [line lines] ["" line])))

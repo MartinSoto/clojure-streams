@@ -3,7 +3,7 @@
             [clstreams.testutil.topology-driver :as drv]
             [clstreams.topology :as sut]))
 
-(deftest test-transducing-processor
+(comment :update-me deftest test-transducing-processor
   (let [data [["a" "1"] ["b" "2"] ["c" "3"]]]
     (testing "can perform arbitrary reductions on its input"
       (let [state (atom 0)
@@ -41,7 +41,7 @@
         (is (= @ctx1 @ctx2))))))
 
 
-(deftest test-key-value-processor
+(comment :update-medeftest test-key-value-processor
   (let [data [["a" "1"] ["b" "2"] ["c" "3"]]]
     (is (= (drv/through-kstreams-processor
             (sut/key-value-processor

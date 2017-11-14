@@ -11,24 +11,19 @@
             [com.stuartsierra.component :as component]
             [clojure.core.async :as a
              :refer [>! <! >!! <!! go chan buffer close! thread
-                     alts! alts!! timeout]]
-
-            [clstreams.examples.count-words.system :refer
-             [count-words-system produce-words]]
-            [clstreams.examples.game-credits.system :refer
-             [game-credits-system send-request]]))
+                     alts! alts!! timeout]]))
 
 (def system nil)
 
 (defn init-system []
-  (alter-var-root #'system
-                  (constantly (game-credits-system))))
+  (comment :update-me alter-var-root #'system
+           (constantly (game-credits-system))))
 
 (defn start-system []
-  (alter-var-root #'system component/start))
+  (comment :update-me alter-var-root #'system component/start))
 
 (defn stop-system []
-  (alter-var-root #'system
+  (comment :update-me alter-var-root #'system
                   (fn [s] (when s (component/stop s)))))
 
 
