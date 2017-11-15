@@ -4,7 +4,7 @@
             [clstreams.landscape :as ldsc]
             [clstreams.processor :as topology]
             [clstreams.store :as store]
-            [clstreams.topology :as prc])
+            [clstreams.topology :as tp])
   (:import org.apache.kafka.common.serialization.Serdes
            org.apache.kafka.streams.processor.TopologyBuilder
            org.apache.kafka.streams.state.Stores))
@@ -76,28 +76,28 @@
 
 (def count-words-topology
   {::ldsc/landscape count-words-landscape
-   ::prc/nodes
-   {:op1 {::prc/node ::prc/source
-          ::prc/topic :input}
-    :op2 {::prc/node ::prc/transform
-          ::prc/preds [:op1]
-          ::prc/xform (comp
+   ::tp/nodes
+   {:op1 {::tp/node ::tp/source
+          ::tp/topic :input}
+    :op2 {::tp/node ::tp/transform
+          ::tp/preds [:op1]
+          ::tp/xform (comp
                        (mapcat #(str/split % #"\W+"))
                        (filter #(> (count %) 0))
                        (map str/lower-case))}
-    :op3 {::prc/node ::prc/transform-pairs
-          ::prc/preds [:op2]
-          ::prc/xform (map (fn [[key value]] [value value]))}
-    :op4 {::prc/node ::prc/sink
-          ::prc/preds [:op3]
-          ::prc/topic :words}
+    :op3 {::tp/node ::tp/transform-pairs
+          ::tp/preds [:op2]
+          ::tp/xform (map (fn [[key value]] [value value]))}
+    :op4 {::tp/node ::tp/sink
+          ::tp/preds [:op3]
+          ::tp/topic :words}
 
-    :op5 {::prc/node ::prc/source
-          ::prc/topic :words}
-    :op6 {::prc/node ::prc/reduce
-          ::prc/preds [:op5]
-          ::prc/initial 0
-          ::prc/fn (fn [count word] (inc count))
-          ::prc/topic :output}}})
+    :op5 {::tp/node ::tp/source
+          ::tp/topic :words}
+    :op6 {::tp/node ::tp/reduce
+          ::tp/preds [:op5]
+          ::tp/initial 0
+          ::tp/fn (fn [count word] (inc count))
+          ::tp/topic :output}}})
 
-(s/assert ::prc/topology count-words-topology)
+(s/assert ::tp/topology count-words-topology)
