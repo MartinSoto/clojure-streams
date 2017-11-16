@@ -32,11 +32,28 @@
    (.forward context key value)
    context))
 
+
+(deftype KeyValueProcessor [reducer
+                            ^:volatile-mutable context]
+
+  Processor
+
+  (init [this ctx]
+    (set! context ctx))
+
+  (process [this key value]
+    (reducer context [key value]))
+
+  (punctuate [this timestamp] nil)
+
+  (close [this]
+    (reducer context)))
+
 (defn key-value-processor
   ([xform]
-   (transducing-processor
-    (fn [context] (xform forward-reducer))
-    identity))
+   (reify
+     ProcessorSupplier
+     (get [this] (->KeyValueProcessor (xform forward-reducer) nil))))
   ([xform1 xform2 & xforms]
    (key-value-processor (apply comp xform1 xform2 xforms))))
 
