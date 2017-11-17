@@ -39,21 +39,23 @@
   (-> (TopologyBuilder.)
       (.addSource "src1" (into-array String '("input")))
       (.addProcessor "prc1"
-                     (topology/key-value-processor
-                      (topology/xform-values
-                       (mapcat #(str/split % #"\W+"))
-                       (filter #(> (count %) 0))
-                       (map str/lower-case))
-                      (map (fn [[key value]] [value value])))
+                     (topology/value-processor
+                      (mapcat #(str/split % #"\W+"))
+                      (filter #(> (count %) 0))
+                      (map str/lower-case))
                      (into-array String '("src1")))
-      (.addSink "snk1" "words" (into-array String '("prc1")))
+      (.addProcessor "prc2"
+                     (topology/key-value-processor
+                      (map (fn [[key value]] [value value])))
+                     (into-array String '("prc1")))
+      (.addSink "snk1" "words" (into-array String '("prc2")))
 
       (.addSource "src2" (into-array String '("words")))
       (.addStateStore
        (store/map-store "counts")
        ;(make-counts-store)
        (into-array String '()))
-      (.addProcessor "prc2"
+      (.addProcessor "prc3"
                      (topology/transducing-processor
                       (fn [context]
                         (completing
@@ -66,8 +68,8 @@
                            store)))
                       (fn [context] (.getStateStore context "counts")))
                      (into-array String '("src2")))
-      (.connectProcessorAndStateStores "prc2" (into-array String '("counts")))
-      (.addSink "snk2" "output" (into-array String '("prc2")))))
+      (.connectProcessorAndStateStores "prc3" (into-array String '("counts")))
+      (.addSink "snk2" "output" (into-array String '("prc3")))))
 
 ;; (println "Collector!!!" (.recordCollector ctx))
 
