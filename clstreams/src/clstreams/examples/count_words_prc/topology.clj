@@ -2,7 +2,7 @@
   (:require [clojure.spec.alpha :as s]
             [clojure.string :as str]
             [clstreams.landscape :as ldsc]
-            [clstreams.processor :as topology]
+            [clstreams.processor :as prc]
             [clstreams.store :as store]
             [clstreams.topology :as tp])
   (:import org.apache.kafka.common.serialization.Serdes
@@ -39,13 +39,13 @@
   (-> (TopologyBuilder.)
       (.addSource "src1" (into-array String '("input")))
       (.addProcessor "prc1"
-                     (topology/value-processor
+                     (prc/value-processor
                       (mapcat #(str/split % #"\W+"))
                       (filter #(> (count %) 0))
                       (map str/lower-case))
                      (into-array String '("src1")))
       (.addProcessor "prc2"
-                     (topology/key-value-processor
+                     (prc/key-value-processor
                       (map (fn [[key value]] [value value])))
                      (into-array String '("prc1")))
       (.addSink "snk1" "words" (into-array String '("prc2")))
@@ -56,7 +56,7 @@
        ;(make-counts-store)
        (into-array String '()))
       (.addProcessor "prc3"
-                     (topology/transducing-processor
+                     (prc/transducing-processor
                       (fn [context]
                         (completing
                          (fn [store [key value]]
