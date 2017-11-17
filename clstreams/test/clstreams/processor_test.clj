@@ -58,7 +58,12 @@
              (map (fn [[key value]] [value key]))
              (filter (fn [[key value]] (odd? (Integer. key)))))
             data)
-           [["1" "a"] ["3" "c"]]))))
+           [["1" "a"] ["3" "c"]]))
+    (is (= (drv/through-kstreams-processor
+            (sut/key-value-processor
+             (mapcat (fn [[key value]] [[value (str key "x")] [value (str key "y")]])))
+            data)
+           [["1" "ax"] ["1" "ay"] ["2" "bx"] ["2" "by"] ["3" "cx"] ["3" "cy"]]))))
 
 
 (deftest test-xform-values

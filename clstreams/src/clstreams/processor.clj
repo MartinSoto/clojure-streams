@@ -25,13 +25,6 @@
      ProcessorSupplier
      (get [this] (->TransducingProcessor init-reducer-fn init-state-fn nil nil)))))
 
-(defn forward-reducer
-  ([] nil)
-  ([context] context)
-  ([context [key value]]
-   (.forward context key value)
-   context))
-
 
 (deftype KeyValueProcessor [reducer
                             ^:volatile-mutable context]
@@ -48,6 +41,13 @@
 
   (close [this]
     (reducer context)))
+
+(defn forward-reducer
+  ([] nil)
+  ([context] context)
+  ([context [key value]]
+   (.forward context key value)
+   context))
 
 (defn key-value-processor
   ([xform]
