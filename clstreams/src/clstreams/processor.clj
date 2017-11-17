@@ -58,6 +58,40 @@
    (key-value-processor (apply comp xform1 xform2 xforms))))
 
 
+(deftype ValueProcessor [reducer
+                         current-key
+                         ^:volatile-mutable context]
+
+  Processor
+
+  (init [this ctx]
+    (set! context ctx))
+
+  (process [this key value]
+    (vreset! current-key key)
+    (reducer context value))
+
+  (punctuate [this timestamp] nil)
+
+  (close [this]
+    (reducer context)))
+
+(defn value-processor
+  ([xform]
+   (let [current-key (volatile! ::none)]
+     (letfn [(forward-reducer
+               ([] nil)
+               ([context] context)
+               ([context value]
+                (.forward context @current-key value)
+                context))]
+       (reify
+         ProcessorSupplier
+         (get [this] (->ValueProcessor (xform forward-reducer) current-key nil))))))
+  ([xform1 xform2 & xforms]
+   (value-processor (apply comp xform1 xform2 xforms))))
+
+
 (defn xform-values [xform & xforms]
   (let [value-xform (apply comp xform xforms)
         current-key (volatile! ::none)]

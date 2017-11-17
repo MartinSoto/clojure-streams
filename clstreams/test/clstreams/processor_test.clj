@@ -66,6 +66,32 @@
            [["1" "ax"] ["1" "ay"] ["2" "bx"] ["2" "by"] ["3" "cx"] ["3" "cy"]]))))
 
 
+(deftest test-value-processor
+  (let [data [["a" "1"] ["b" "2"] ["c" "3"]]]
+    (is (= (drv/through-kstreams-processor
+            (sut/value-processor
+             identity)
+            data)
+           data))
+    (is (= (drv/through-kstreams-processor
+            (sut/value-processor
+             (map (comp str inc #(Integer. %))))
+            data)
+           [["a" "2"] ["b" "3"] ["c" "4"]]))
+    (is (= (drv/through-kstreams-processor
+            (sut/value-processor
+             (map (comp inc #(Integer. %)))
+             (filter even?)
+             (map str))
+            data)
+           [["a" "2"] ["c" "4"]]))
+    (is (= (drv/through-kstreams-processor
+            (sut/value-processor
+             (mapcat (fn [v] [(str v "x") (str v "y")])))
+            data)
+           [["a" "1x"] ["a" "1y"] ["b" "2x"] ["b" "2y"] ["c" "3x"] ["c" "3y"]]))))
+
+
 (deftest test-xform-values
   (let [data [[:a 1] [:b 2] [:c 3]]]
     (testing "applied to identity results in identity transform"
