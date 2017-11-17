@@ -91,17 +91,3 @@
             data)
            [["a" "1x"] ["a" "1y"] ["b" "2x"] ["b" "2y"] ["c" "3x"] ["c" "3y"]]))))
 
-
-(deftest test-xform-values
-  (let [data [[:a 1] [:b 2] [:c 3]]]
-    (testing "applied to identity results in identity transform"
-      (is (= (transduce (sut/xform-values identity) conj data) data)))
-    (testing "map affects only keys"
-      (is (= (transduce (sut/xform-values (map inc)) conj data)
-             [[:a 2] [:b 3] [:c 4]])))
-    (testing "composes several transforms"
-      (is (= (transduce (sut/xform-values (map inc) (map str)) conj data)
-             [[:a "2"] [:b "3"] [:c "4"]])))
-    (testing "can produce zero or several results per key"
-      (is (= (transduce (sut/xform-values (map dec) (mapcat range)) conj data)
-             [[:b 0] [:c 0] [:c 1]])))))

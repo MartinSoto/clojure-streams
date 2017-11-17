@@ -91,20 +91,3 @@
   ([xform1 xform2 & xforms]
    (value-processor (apply comp xform1 xform2 xforms))))
 
-
-(defn xform-values [xform & xforms]
-  (let [value-xform (apply comp xform xforms)
-        current-key (volatile! ::none)]
-    (letfn [(separate-key-xform [rf]
-              (fn
-                ([] (rf))
-                ([result] (rf result))
-                ([result [key value]]
-                 (vreset! current-key key)
-                 (rf result value))))
-            (remix-key-xform [rf]
-              (fn
-                ([] (rf))
-                ([result] (rf result))
-                ([result value] (rf result [@current-key value]))))]
-      (comp separate-key-xform value-xform remix-key-xform))))
