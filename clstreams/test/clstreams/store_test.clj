@@ -26,11 +26,11 @@
 
 (deftest test-lookup-processor
   (let [store (-> (make-store)
-                  (sut/store-assoc! "a" "AA")
-                  (sut/store-assoc! "b" "BB")
-                  (sut/store-assoc! "c" "CC"))
-        data [["a" "1"] ["b" "2"] ["c" "3"]]]
+                  (sut/store-assoc! :a "AA")
+                  (sut/store-assoc! :b "BB")
+                  (sut/store-assoc! :c "CC"))
+        data [[:a 1] [:b 2] [:c 3]]]
     (is (= (drv/through-kstreams-processor
             (sut/lookup-processor store)
             data)
-           [["a" ["1" "AA"]] ["b" ["2" "BB"]] ["c" ["3" "CC"]]]))))
+           [[:a [1 "AA"]] [:b [2 "BB"]] [:c [3 "CC"]]]))))
