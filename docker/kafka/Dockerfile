@@ -16,8 +16,6 @@ RUN wget "http://www.apache.org/dist/kafka/${KAFKA_VERSION}/kafka_${SCALA_VERSIO
     && rm /tmp/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz \
     && ln -s /opt/kafka_${SCALA_VERSION}-${KAFKA_VERSION} /opt/kafka
 
-VOLUME ["/kafka"]
-
 ENV KAFKA_HOME /opt/kafka
 ENV PATH ${PATH}:${KAFKA_HOME}/bin
 
