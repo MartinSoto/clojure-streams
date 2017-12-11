@@ -29,7 +29,7 @@
 
 (deftest test-edn-serde
   (let [serde (sut/edn-serde)]
-    ; These check should work without =, but an apparent bug makes
-    ; them fail mysteriously.
+    ; These checks should work without =, but an apparent bug makes
+    ; them fail misteriously.
     (is (= (instance? EDNSerializer (.serializer serde)) true))
     (is (= (instance? EDNDeserializer (.deserializer serde)) true))))
