@@ -1,5 +1,7 @@
 (ns clstreams.store
-  (:import [org.apache.kafka.streams.processor StateStore StateStoreSupplier]))
+  (:import [org.apache.kafka.streams.processor
+            Processor ProcessorSupplier
+            StateStore StateStoreSupplier]))
 
 (defprotocol StateMap
   (store-get [this key])
@@ -50,3 +52,22 @@
     (loggingEnabled [this] false)
 
     (name [this] st-name)))
+
+
+(deftype LookupProcessor [store
+                          ^:volatile-mutable context]
+
+  Processor
+
+  (init [this ctx]
+    (set! context ctx))
+
+  (process [this key value]
+    (.forward context key [value (store-get store key)]))
+
+  (punctuate [this timestamp] nil)
+
+  (close [this] nil))
+
+(defn lookup-processor
+  ([store] (reify ProcessorSupplier (get [this] (->LookupProcessor store nil)))))
