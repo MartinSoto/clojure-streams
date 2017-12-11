@@ -1,8 +1,8 @@
 (ns clstreams.testutil.topology-driver
-  (:require [clstreams.landscape :as ldsc]
+  (:require [clstreams.kstreams.serdes :as serdes]
+            [clstreams.landscape :as ldsc]
             [clstreams.testutil.kstreams :refer [default-props]])
-  (:import org.apache.kafka.common.serialization.Serdes
-           org.apache.kafka.streams.kstream.KStreamBuilder
+  (:import org.apache.kafka.streams.kstream.KStreamBuilder
            [org.apache.kafka.streams.processor Processor TopologyBuilder]
            org.apache.kafka.streams.StreamsConfig
            org.apache.kafka.test.ProcessorTopologyTestDriver))
@@ -48,18 +48,24 @@
   {::ldsc/streams
    {:input {::ldsc/topic-name "input"
             ::ldsc/type :stream
-            ::ldsc/keys {::ldsc/serde (Serdes/String)}
-            ::ldsc/values {::ldsc/serde (Serdes/String)}}
+            ::ldsc/keys {::ldsc/serde (serdes/edn-serde)}
+            ::ldsc/values {::ldsc/serde (serdes/edn-serde)}}
     :output {::ldsc/topic-name "output"
              ::ldsc/type :stream
-             ::ldsc/keys {::ldsc/serde (Serdes/String)}
-             ::ldsc/values {::ldsc/serde (Serdes/String)}}}})
+             ::ldsc/keys {::ldsc/serde (serdes/edn-serde)}
+             ::ldsc/values {::ldsc/serde (serdes/edn-serde)}}}})
 
 (defn single-processor-topology [^Processor processor]
   (let [builder (TopologyBuilder.)]
-    (.addSource builder "src1" (into-array String '("input")))
+    (.addSource builder "src1"
+                (ldsc/key-deserializer single-processor-landscape :input)
+                (ldsc/value-deserializer single-processor-landscape :input)
+                (into-array String '("input")))
     (.addProcessor builder "prc1" processor (into-array String '("src1")))
-    (.addSink builder "snk1" "output" (into-array String '("prc1")))
+    (.addSink builder "snk1" "output"
+              (ldsc/key-serializer single-processor-landscape :output)
+              (ldsc/value-serializer single-processor-landscape :output)
+              (into-array String '("prc1")))
     builder))
 
 (defn through-kstreams-processor [^Processor processor msgs]
