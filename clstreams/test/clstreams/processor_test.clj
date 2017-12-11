@@ -4,16 +4,14 @@
             [clstreams.testutil.topology-driver :as drv]))
 
 (deftest test-transducing-processor
-  (let [data [["a" "1"] ["b" "2"] ["c" "3"]]]
+  (let [data [[:a 1] [:b 2] [:c 3]]]
     (testing "can perform arbitrary reductions on its input"
       (let [state (atom 0)
             reducer (completing (fn [st val] (swap! st + val) st))]
         (drv/through-kstreams-processor
          (sut/transducing-processor
           (fn [context]
-            ((comp
-              (map #(nth % 1))
-              (map #(Integer/parseInt %)))
+            ((map #(nth % 1))
              reducer))
           (fn [context] state))
          data)
@@ -42,7 +40,7 @@
 
 
 (deftest test-key-value-processor
-  (let [data [["a" "1"] ["b" "2"] ["c" "3"]]]
+  (let [data [[:a 1] [:b 2] [:c 3]]]
     (is (= (drv/through-kstreams-processor
             (sut/key-value-processor
              identity)
@@ -52,22 +50,22 @@
             (sut/key-value-processor
              (map (fn [[key value]] [value key])))
             data)
-           [["1" "a"] ["2" "b"] ["3" "c"]]))
+           [[1 :a] [2 :b] [3 :c]]))
     (is (= (drv/through-kstreams-processor
             (sut/key-value-processor
              (map (fn [[key value]] [value key]))
              (filter (fn [[key value]] (odd? (Integer. key)))))
             data)
-           [["1" "a"] ["3" "c"]]))
+           [[1 :a] [3 :c]]))
     (is (= (drv/through-kstreams-processor
             (sut/key-value-processor
              (mapcat (fn [[key value]] [[value (str key "x")] [value (str key "y")]])))
             data)
-           [["1" "ax"] ["1" "ay"] ["2" "bx"] ["2" "by"] ["3" "cx"] ["3" "cy"]]))))
+           [[1 ":ax"] [1 ":ay"] [2 ":bx"] [2 ":by"] [3 ":cx"] [3 ":cy"]]))))
 
 
 (deftest test-value-processor
-  (let [data [["a" "1"] ["b" "2"] ["c" "3"]]]
+  (let [data [[:a 1] [:b 2] [:c 3]]]
     (is (= (drv/through-kstreams-processor
             (sut/value-processor
              identity)
@@ -75,19 +73,18 @@
            data))
     (is (= (drv/through-kstreams-processor
             (sut/value-processor
-             (map (comp str inc #(Integer. %))))
+             (map inc))
             data)
-           [["a" "2"] ["b" "3"] ["c" "4"]]))
+           [[:a 2] [:b 3] [:c 4]]))
     (is (= (drv/through-kstreams-processor
             (sut/value-processor
-             (map (comp inc #(Integer. %)))
-             (filter even?)
-             (map str))
+             (map inc)
+             (filter even?))
             data)
-           [["a" "2"] ["c" "4"]]))
+           [[:a 2] [:c 4]]))
     (is (= (drv/through-kstreams-processor
             (sut/value-processor
              (mapcat (fn [v] [(str v "x") (str v "y")])))
             data)
-           [["a" "1x"] ["a" "1y"] ["b" "2x"] ["b" "2y"] ["c" "3x"] ["c" "3y"]]))))
+           [[:a "1x"] [:a "1y"] [:b "2x"] [:b "2y"] [:c "3x"] [:c "3y"]]))))
 
